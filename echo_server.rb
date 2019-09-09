@@ -2,8 +2,21 @@
 
 require "socket"
 
-host = "0.0.0.0"
-port = 80
+#Reads in input from gets until 
+def gets_multiline(client)
+        text = ''
+        line = 'a'
+
+        while line != '' do
+                line = client.gets.chomp
+                text += line + "\n" unless line.empty?
+        end
+
+        return text
+end
+
+host = "0.0.0.0"  #host is hardcoded for now; will switch to arg
+port = 80	  #default port of 80, overidden by 1st argument
 
 port = ARGV[0] unless ARGV.empty?
 
@@ -13,9 +26,10 @@ puts "Listening on #{host}:#{port} ..."
 loop do
 	Thread.start(socket.accept) do |client|
 		puts "connected to #{client}"
-		#client.write("greetings #{client}!\ni'm #{host}!\n")
+		client.write("This is an echo server!\nI repeat what you say")
+		client.write("\n...until the first empty line that is...\n")
 		
-		message = client.gets
+		message = gets_multiline(client)
 		puts "#{client} sez: " + message
 		client.write message
 		
