@@ -1,7 +1,9 @@
 FROM ruby
-COPY echo_server.rb /app/
+COPY main.rb /app/
+COPY rsc/* /app/rsc/
+COPY config.yml /app/
 WORKDIR /app
-RUN chmod a+x echo_server.rb
+RUN chmod a+x main.rb
 
-ENTRYPOINT ["./echo_server.rb"]
+ENTRYPOINT ["./main.rb"]
 CMD []

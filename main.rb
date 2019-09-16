@@ -1,9 +1,17 @@
 #!/usr/bin/env ruby
 
 require "socket"
+require_relative "rsc/config-loader"
 
+#Config hierarchy from last to first is
+#  args > file > hardcoded
 host = "0.0.0.0"  #host is hardcoded for now; will switch to arg
 port = 80	  #default port of 80, overidden by 1st argument
+
+#Config file loaded here
+config = load_config("config.yml")
+host = config['host']
+port = config['port']
 
 port = ARGV[0] unless ARGV.empty?
 

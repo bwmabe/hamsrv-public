@@ -1,8 +1,9 @@
-# hamsrv
-Repository for CS431
+./
+├── Dockerfile
+├── main.rb
+├── README.md
+├── rsc
+├── src
+└── tree.txt
 
-# Dirs
-
-* src: source code for custom libs
-
-* rsc: non-code resources
+2 directories, 4 files
