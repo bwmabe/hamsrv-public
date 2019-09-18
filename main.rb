@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
 require "socket"
-require_relative "rsc/config-loader"
+require_relative "src/config-loader"
 
 #Config hierarchy from last to first is
 #  args > file > hardcoded
