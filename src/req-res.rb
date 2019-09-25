@@ -1,9 +1,13 @@
 class Request
 	def initialize()
-		@method = ''
-		@object = ''
+		@method = ""
+		@uri = ""
+		@version = ""
 		@headers = Hash.new	# Empty by default
 		@valid = false		# Initialzed to false	 
+	end
+	def parse(reqString)
+		
 	end
 end
 
@@ -15,14 +19,13 @@ class Response
 		@headers = Hash.new
 		@body = ''
 	end
-	def status=(s)
-		@status = s
-	end
+
+	attr_accessor :status, :body
+	attr_reader :version
+	attr_writer :headers
+
 	def statusline
 		@statusline = @version + @status
-	end
-	def headers=(h)
-		@headers = h
 	end
 	def headers
 		s = ''
