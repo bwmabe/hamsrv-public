@@ -1,11 +1,12 @@
 require_relative "responses"
+require_relative "time-date"
 
 class Request
 	# @param the whole request as a multi-line string
 	#  or nothing at all
 	def initialize(req)
 		if req != nil
-			unless req.respond_to? :split?
+			unless req.respond_to? :include?
 				raise ArgumentError "must be string"
 			end
 
@@ -13,18 +14,18 @@ class Request
 			@method = ""
 			@uri = ""
 			@version = ""
-			@headers = nil
+			@headers = Hash.new
 			@valid = false
-			
 
 			# Split request message into lines
-			if req.includes?("\r")
+			if req.include?("\r")
 				lines = req.split("\r\n")
+				puts lines
 			else
 				lines = req.split("\n")
 			end
 
-			if lines.length > 1
+			if lines.length >= 1
 				#main branch
 				@directive = lines[0].split(' ')
 				
@@ -37,7 +38,8 @@ class Request
 					# headerLines = lines[1...lines.length]] 
 					# @headers = headerLines.split(":")
 					headerLines = lines[1...lines.length]
-					headerLines.each { |i| j = i.split(":"); @headers[j[0]] = j[1] }
+					headerLines.each { |i| j = i.split(":"); 
+							@headers[j[0]] = j[1] }
 					
 					# Was going to process empty headers here, but RFC 7231 allows this
 				
@@ -72,9 +74,9 @@ class Request
 	
 	attr_reader :valid, :uri, :headers, :method
 
-	def parse(reqString)
-		tempArr =  @directive.split(' ')
-		
+	def fname
+		temp = @uri.split("/")
+		return temp[temp.length()-1]
 	end
 end
 
@@ -85,6 +87,8 @@ class Response
 		@status = ''
 		@headers = Hash.new
 		@body = ''
+
+		@headers["Server"] = "hamsrv 0.0.1"
 	end
 
 	attr_accessor :status, :body
@@ -94,12 +98,24 @@ class Response
 	def statusline
 		@statusline = @version + @status
 	end
-	def headers
+	def headerStr
 		s = ''
 		@headers.each do |key, value|
-			s += key + ": " + value + "\n"
+			s += key + ": " + value + "\r\n"
 		end
 		return s
 	end
+
+	def addHeader(key, value)
+		@headers[key] = value
+	end
+
+	def statusAndHeaders
+		@headers["Date"] = HamDate.new.now
+		@headers["Connection"] = "close"
+		toRet = @version + @status + "\r\n" + self.headerStr + "\r\n"
+	end
+		
 end
-	
+
+

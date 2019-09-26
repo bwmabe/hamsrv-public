@@ -23,7 +23,7 @@ def getMIME(fname)
 	when "png"
 		return "image/png"
 	when "jpeg", "jpg"
-		return "image/jpep"
+		return "image/jpeg"
 	when "gif"
 		return "image/gif"
 	when "pdf"
