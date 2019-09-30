@@ -22,7 +22,7 @@ def evalReq(request, response, config)
 	if !request.uri.include?("http://")
 		# If host is not in URI; bad request if host is not in headers either
 		response.status = RESPONSES[400] if !request.headers.key?("Host")
-		response.addHeader("DBG", request.fullFname)
+		#response.addHeader("DBG", request.fullFname)
 		return response if !request.headers.key?("Host")
 	end
 	
@@ -56,7 +56,7 @@ def evalReq(request, response, config)
 		response.body = body
 	when 'HEAD'
 		# do head things
-		
+		# shouldn't have to anything since everything is done above
 	when 'OPTIONS'
 		# do options things
 	when 'TRACE'
@@ -72,7 +72,10 @@ if __FILE__ == $0
 	conf = load_config("config.yml")
 	req1 = Request.new("GT http://example.com HTTP/1.1123")
 	req2 = Request.new("GET http://foo.bar:6969/test.png HTTP/1.1")
+	r3 = Request.new("GET /test.png HTTP/1.0")
 	res = Response.new
+
+	r3.headers["Host"] = "http://foo.bar"
 
 	puts req1.print()
 
@@ -86,4 +89,9 @@ if __FILE__ == $0
 	res = Response.new
 
 	puts evalReq(req2, res, conf).print
+	res=Response.new
+	puts "====-=-=-=-=-=---=---==="
+	puts r3.print
+	puts "+_+_+_+_+_+_+_+_+_+_+_+_+_+_+"
+	puts evalReq(r3,res,conf).print
 end

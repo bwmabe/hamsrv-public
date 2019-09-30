@@ -73,6 +73,7 @@ class Request
 	end
 	
 	attr_reader :valid, :uri, :headers, :method, :version
+	attr_writer :headers
 
 	def fname
 		temp = @uri.split("/")
