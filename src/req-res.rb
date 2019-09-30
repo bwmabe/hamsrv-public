@@ -38,7 +38,7 @@ class Request
 					# headerLines = lines[1...lines.length]] 
 					# @headers = headerLines.split(":")
 					headerLines = lines[1...lines.length]
-					headerLines.each { |i| j = i.split(":"); 
+					headerLines.each { |i| j = i.split(": "); 
 							@headers[j[0]] = j[1] }
 					
 					# Was going to process empty headers here, but RFC 7231 allows this
@@ -92,6 +92,13 @@ class Request
 		@headers.each{ |i,j| headerstring += i + ": " + j + "\r\n" }
 		return @method + " " + @uri + " " + @version + "\r\n" +headerstring
 	end
+
+	def debugPrint
+		#puts @directive + ":"
+		puts @method + ":"
+		puts @uri +":"
+		headers.each { |i| puts i[0] + "::" + i[1] }
+	end
 		
 end
 
@@ -142,5 +149,5 @@ end
 if __FILE__ == $0
 	r = Request.new("GET /a1-test/a1-test/ HTTP/1.1\r\nHost: cs531-bmabe\r\nConnection: close")
 	
-	puts r.headers.include?("Host")
+	r.debugPrint
 end

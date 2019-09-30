@@ -6,6 +6,7 @@ require_relative "mime"
 def evalReq(request, response, config)
 	if __FILE__ == $0
 		debug = true
+		config["allowed-methods"].each { |i| puts i }
 	end
 	
 	response.status = RESPONSES[200] 
@@ -89,6 +90,8 @@ if __FILE__ == $0
 	req2 = Request.new("GET http://foo.bar:6969/test.png HTTP/1.1")
 	r3 = Request.new("HEAD /test.txt HTTP/1.0")
 	res = Response.new
+
+	conf["allowed-methods"].each { |i| puts i }
 
 	r3.headers["Host"] = "foo.bar"
 
