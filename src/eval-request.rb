@@ -20,10 +20,12 @@ def evalReq(request, response, config)
 	#puts "URI is all allowed chars" if debug
 
 	if !request.uri.include?("http://")
+		if !request.headers.key?("Host")
 		# If host is not in URI; bad request if host is not in headers either
-		response.status = RESPONSES[400] if !request.headers.key?("Host")
+			response.status = RESPONSES[400] if !request.headers.key?("Host")
 		#response.addHeader("DBG", request.fullFname)
-		return response if !request.headers.key?("Host")
+			return response if !request.headers.key?("Host")
+		end
 	end
 	
 	response.status = RESPONSES[505]; return response if request.version.split("/")[1].to_f > 1.1

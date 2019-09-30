@@ -20,7 +20,7 @@ class Request
 			# Split request message into lines
 			if req.include?("\r")
 				lines = req.split("\r\n")
-				puts lines
+				#puts lines
 			else
 				lines = req.split("\n")
 			end
@@ -44,16 +44,12 @@ class Request
 					# Was going to process empty headers here, but RFC 7231 allows this
 				
 					# Extract host for URI validation
-					host = @headers.each { |i,j| return j if i == "Host"}
+					#host = @headers.each { |i,j| return j if i == "Host"}
 
 					#validate method
 					#validate uri
 					#validate version
-				else
-					@responseCode = 401 # Bad request
 				end
-			else
-				@responseCode = 401 # Bad request
 			end
 			
 			
@@ -68,10 +64,6 @@ class Request
 		end
 	end
 
-	def responseCode()
-		return @responseCode.to_s() + " " + RESPONSES[@responseCode] + "\r\n"
-	end
-	
 	attr_reader :valid, :uri, :headers, :method, :version
 	attr_writer :headers
 
@@ -147,3 +139,8 @@ class Response
 end
 
 
+if __FILE__ == $0
+	r = Request.new("GET /a1-test/a1-test/ HTTP/1.1\r\nHost: cs531-bmabe\r\nConnection: close")
+	
+	puts r.headers.include?("Host")
+end
