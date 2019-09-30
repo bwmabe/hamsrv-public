@@ -16,7 +16,7 @@ def evalReq(request, response, config)
 		if !config["extant-methods"].include?(request.method)
 			response.status = RESPONSES[400]
 		else
-			response.status = RESPONSES[501]
+			response.status = RESPONSES[200]
 		end
 		
 		return response
