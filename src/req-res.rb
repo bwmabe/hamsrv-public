@@ -90,6 +90,9 @@ class Request
 		return path
 	end
 
+	def fullFname
+		return path + "/" + fname
+
 	def print()
 		headerstring = ''
 		@headers.each{ |i,j| headerstring += i + ": " + j + "\r\n" }
