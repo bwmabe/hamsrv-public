@@ -39,7 +39,8 @@ def evalReq(request, response, config)
 	begin
 		puts request.fullFname if debug
 		resource = File.new(request.fullFname, "r")
-		response.addHeader("Content-Length", resource.length)
+		body = resource.read
+		response.addHeader("Content-Length", body.length.to_s)
 	rescue
 		response.addHeader("Content-Type", ctype)
 		response.status = RESPONSES[404]
@@ -51,7 +52,7 @@ def evalReq(request, response, config)
 	when 'GET'
 		# check if file exists
 		# check if file readable
-		response.body = resource.read
+		response.body = body
 	when 'HEAD'
 		# do head things
 		
@@ -77,6 +78,8 @@ if __FILE__ == $0
 
 	puts evalReq(req1, res, conf).print
 	
+	puts "------"
+	puts req2.print()
 	puts "------"
 	res = Response.new
 
