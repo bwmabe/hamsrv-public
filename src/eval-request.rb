@@ -39,6 +39,7 @@ def evalReq(request, response, config)
 	begin
 		puts request.fullFname if debug
 		resource = File.new(request.fullFname, "r")
+		response.addHeader("Content-Length", resource.length)
 	rescue
 		response.addHeader("Content-Type", ctype)
 		response.status = RESPONSES[404]

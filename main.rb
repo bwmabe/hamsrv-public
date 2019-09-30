@@ -41,6 +41,7 @@ loop do
 			unless message.nil?
 				evalReq(Request.new(message),response,config)
 				client.write response.print
+				message = nil
 				client.close
 			end
 		end
