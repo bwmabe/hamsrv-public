@@ -21,7 +21,8 @@ def evalReq(request, response, config)
 
 	if !request.uri.include?("http://")
 		# If host is not in URI; bad request if host is not in headers either
-		response.status = RESPONSES[400]; return response if !request.headers.key?("Host")
+		response.status = RESPONSES[400];
+		 return response if !request.headers.key?("Host")
 	end
 	
 	response.status = RESPONSES[505]; return response if request.version.split("/")[1].to_f > 1.1
@@ -39,6 +40,7 @@ def evalReq(request, response, config)
 	rescue
 		response.addHeader("Content-Type", ctype)
 		response.status = RESPONSES[404]
+		response.addHeader("DEBUG", request.fname)
 		return response
 	else
 		response.addHeader("Content-Type", getMIME(request.fname))
@@ -64,8 +66,8 @@ end
 if __FILE__ == $0
 	puts "Testing eval-request.rb..."
 	conf = load_config("config.yml")
-	req1 = Request.new("GT http://example.com HTTP/1.1")
-	req2 = Request.new("GET http://foo.bar/test.png HTTP/1.1")
+	req1 = Request.new("GT http://example.com HTTP/1.1123")
+	req2 = Request.new("GET http://foo.bar:6969/test.png HTTP/1.1")
 	res = Response.new
 
 	puts req1.print()
