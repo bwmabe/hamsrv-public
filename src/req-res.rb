@@ -85,7 +85,7 @@ class Request
 		if temp.include?("http:")
 			temp[3..(temp.length-2)].each { |i| path += "/" + i }
 		else
-			temp[1..(temp.length-1)].each { |i| path += "/" + i }
+			temp[1..(temp.length-2)].each { |i| path += "/" + i }
 		end
 		return path
 	end
