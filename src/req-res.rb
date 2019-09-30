@@ -79,6 +79,15 @@ class Request
 		return temp[temp.length()-1]
 	end
 
+	def path
+		temp = @uri.split("/")
+		path = '.'
+		if temp.include?("http:")
+			temp[3..(temp.length-2)].each { |i| path += "/" + i }
+		else
+			temp[1..(temp.length-1)].each { |i| path += "/" + i }
+		end
+
 	def print()
 		headerstring = ''
 		@headers.each{ |i,j| headerstring += i + ": " + j + "\r\n" }

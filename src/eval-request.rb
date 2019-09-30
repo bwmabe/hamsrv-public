@@ -36,11 +36,11 @@ def evalReq(request, response, config)
 
 	begin
 		puts request.fname if debug
-		resource = File.new(request.fname, "r")
+		resource = File.new(request.path + request.fname, "r")
 	rescue
 		response.addHeader("Content-Type", ctype)
 		response.status = RESPONSES[404]
-		response.addHeader("DEBUG", request.fname)
+		response.addHeader("DEBUG", request.path + request.fname)
 		return response
 	else
 		response.addHeader("Content-Type", getMIME(request.fname))
