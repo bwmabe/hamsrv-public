@@ -11,7 +11,15 @@ def evalReq(request, response, config)
 	response.status = RESPONSES[200] 
 
 	#check method
-	response.status = RESPONSES[501]; return response if !config["allowed-methods"].include?(request.method)
+	if !config["allowed-methods"].include?(request.method)
+		if !config["extant-methods"].include?(request.method)
+			response.status = RESPONSES[400]
+		else
+			response.status = RESPONSES[501]
+		end
+		
+		return response
+	end
 	#puts "method good" if debug
 	
 	#check uri

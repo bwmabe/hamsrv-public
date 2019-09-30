@@ -1,3 +1,4 @@
 host: "0.0.0.0"
 port: 9999
 allowed-methods: ["GET", "HEAD", "Options", "Trace"]
+extant-methods: ["get", "head", "options", "trace", "post", "put", "delete", "connect", "patch"]
