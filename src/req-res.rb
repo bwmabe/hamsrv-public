@@ -28,10 +28,12 @@ class Request
 			if lines.length >= 1
 				#main branch
 				@directive = lines[0].split(' ')
-				
+
 				if @directive.length == 3
 					@method = @directive[0]
+					#puts "M" + @method
 					@uri = @directive[1]
+					#puts "U" + @uri
 					@version = @directive[2]
 					
 					# inputs headers
@@ -76,9 +78,9 @@ class Request
 		temp = @uri.split("/")
 		path = '.'
 		if temp.include?("http:")
-			temp[3..(temp.length-2)].each { |i| path += "/" + i }
+			temp[3..(temp.length-1)].each { |i| path += "/" + i if i != ""}
 		else
-			temp[1..(temp.length-2)].each { |i| path += "/" + i }
+			temp[1..(temp.length-1)].each { |i| path += "/" + i if i != "" }
 		end
 		return path
 	end
@@ -96,7 +98,7 @@ class Request
 	def debugPrint
 		#puts @directive + ":"
 		puts @method + ":"
-		puts @uri +":"
+		puts path() +":"
 		headers.each { |i| puts i[0] + "::" + i[1] }
 	end
 		
@@ -148,6 +150,8 @@ end
 
 if __FILE__ == $0
 	r = Request.new("GET /a1-test/a1-test/ HTTP/1.1\r\nHost: cs531-bmabe\r\nConnection: close")
+	r2 = Request.new("GET http://test.com/a1-test/a1-test/ HTTP/1.1\r\nConnection: close")
 	
 	r.debugPrint
+	r2.debugPrint
 end
