@@ -22,7 +22,7 @@ def evalReq(request, response, config)
 	if !request.uri.include?("http://")
 		# If host is not in URI; bad request if host is not in headers either
 		response.status = RESPONSES[400];
-		 return response if !request.headers.key?("Host")
+		return response if !request.headers.key?("Host")
 	end
 	
 	response.status = RESPONSES[505]; return response if request.version.split("/")[1].to_f > 1.1

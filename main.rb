@@ -36,12 +36,12 @@ loop do
 		message = ''
 
 		while true do
+			message = ''
 			message += client.gets("\n")
 
 			unless message.nil?
 				evalReq(Request.new(message),response,config)
 				client.write response.print
-				message = nil
 				client.close
 			end
 		end
