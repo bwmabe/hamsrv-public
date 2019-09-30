@@ -22,6 +22,7 @@ def evalReq(request, response, config)
 	if !request.uri.include?("http://")
 		# If host is not in URI; bad request if host is not in headers either
 		response.status = RESPONSES[400] if !request.headers.key?("Host")
+		response.addHeader("DBG", request.fullFname)
 		return response if !request.headers.key?("Host")
 	end
 	
@@ -60,6 +61,7 @@ def evalReq(request, response, config)
 		# do options things
 	when 'TRACE'
 		# do trace things
+		
 	end
 	response.status = RESPONSES[200]
 	return response
