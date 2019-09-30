@@ -40,7 +40,7 @@ loop do
 
 			unless message.nil?
 				evalReq(Request.new(message),response,config)
-				client.write response
+				client.write response.print
 				client.close
 			end
 		end
