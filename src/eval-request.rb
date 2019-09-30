@@ -40,7 +40,7 @@ def evalReq(request, response, config)
 		puts request.fullFname if debug
 		resource = File.new(request.fullFname, "r")
 		body = resource.read
-		response.addHeader("Content-Length", resource.size)
+		response.addHeader("Content-Length", resource.size.to_s)
 	rescue
 		response.addHeader("Content-Type", ctype)
 		response.status = RESPONSES[404]
