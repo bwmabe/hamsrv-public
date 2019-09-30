@@ -16,7 +16,7 @@ def evalReq(request, response, config)
 		if !config["extant-methods"].include?(request.method)
 			response.status = RESPONSES[400]
 		else
-			response.status = RESPONSES[200]
+			response.status = RESPONSES[501]
 		end
 		
 		return response
@@ -30,12 +30,12 @@ def evalReq(request, response, config)
 	#return RESPONSES[400] if !request.uri.include?("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~:/?#[]@!$&()*+,;=")
 	#puts "URI is all allowed chars" if debug
 
-	if !request.uri.include?("http://")
+	if !request.uri.include?("http")
 		if !request.headers.key?("Host")
 		# If host is not in URI; bad request if host is not in headers either
-			response.status = RESPONSES[501] if !request.headers.key?("Host")
+			response.status = RESPONSES[501]
 		#response.addHeader("DBG", request.fullFname)
-			return response if !request.headers.key?("Host")
+			return response
 		end
 	end
 	
