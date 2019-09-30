@@ -13,9 +13,9 @@ def evalReq(request, response, config)
 
 	#check method
 	if !config["allowed-methods"].include?(request.method)
-		if !config["extant-methods"].include?(request.method)
+		if config["extant-methods"].include?(request.method)
 			response.status = RESPONSES[400]
-		elsif !["HEAD", "OPTIONS"].include?(request.method)
+		else 
 			response.status = RESPONSES[501]
 		end
 		
