@@ -24,7 +24,7 @@ def evalReq(request, response, config)
 	if !request.uri.include?("http://")
 		if !request.headers.key?("Host")
 		# If host is not in URI; bad request if host is not in headers either
-			response.status = RESPONSES[400] if !request.headers.key?("Host")
+			response.status = RESPONSES[501] if !request.headers.key?("Host")
 		#response.addHeader("DBG", request.fullFname)
 			return response if !request.headers.key?("Host")
 		end
@@ -79,10 +79,10 @@ if __FILE__ == $0
 	conf = load_config("config.yml")
 	req1 = Request.new("GT http://example.com HTTP/1.1123")
 	req2 = Request.new("GET http://foo.bar:6969/test.png HTTP/1.1")
-	r3 = Request.new("GET /test.png HTTP/1.0")
+	r3 = Request.new("HEAD /test.txt HTTP/1.0")
 	res = Response.new
 
-	r3.headers["Host"] = "http://foo.bar"
+	r3.headers["Host"] = "foo.bar"
 
 	puts req1.print()
 
