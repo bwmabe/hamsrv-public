@@ -37,6 +37,7 @@ loop do
 
 		while true do
 			message = ''
+			response = Response.new
 			message += client.gets("\n")
 
 			unless message.nil?
