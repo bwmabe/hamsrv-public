@@ -72,12 +72,19 @@ class Request
 		return @responseCode.to_s() + " " + RESPONSES[@responseCode] + "\r\n"
 	end
 	
-	attr_reader :valid, :uri, :headers, :method
+	attr_reader :valid, :uri, :headers, :method, :version
 
 	def fname
 		temp = @uri.split("/")
 		return temp[temp.length()-1]
 	end
+
+	def print()
+		headerstring = ''
+		@headers.each{ |i,j| headerstring += i + ": " + j + "\r\n" }
+		return @method + " " + @uri + " " + @version + "\r\n" +headerstring
+	end
+		
 end
 
 
@@ -113,7 +120,12 @@ class Response
 	def statusAndHeaders
 		@headers["Date"] = HamDate.new.now
 		@headers["Connection"] = "close"
-		toRet = @version + @status + "\r\n" + self.headerStr + "\r\n"
+
+		return  @version + @status + "\r\n" + self.headerStr + "\r\n"
+	end
+
+	def print
+		return statusAndHeaders + body
 	end
 		
 end

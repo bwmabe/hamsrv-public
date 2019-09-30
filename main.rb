@@ -16,6 +16,7 @@ port = 80	  #default port of 80, overidden by 1st argument
 config = load_config("config.yml")
 host = config['host']
 port = config['port']
+#puts port
 allowed_methods = config["allowed-methods"]
 
 port = ARGV[0] unless ARGV.empty?

@@ -38,5 +38,15 @@ def getMIME(fname)
 end
 
 
-#puts getMIME("owo.pdf")
-#getMIME(4)
+if __FILE__ == $0
+	puts getMIME("owo.pdf")
+	puts getMIME("d.o.t.t.y.b.o.y.e.png.gif.pptx")
+	
+	begin
+		puts getMIME(4)
+	rescue
+		puts "wrong arg okay!"
+	else
+		puts "wrong arg broken"
+	end
+end
