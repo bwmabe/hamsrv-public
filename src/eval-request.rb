@@ -21,7 +21,7 @@ def evalReq(request, response, config)
 
 	if !request.uri.include?("http://")
 		# If host is not in URI; bad request if host is not in headers either
-		response.status = RESPONSES[400];
+		response.status = RESPONSES[400] if !request.headers.key?("Host")
 		return response if !request.headers.key?("Host")
 	end
 	
