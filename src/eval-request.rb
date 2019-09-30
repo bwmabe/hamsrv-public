@@ -7,6 +7,8 @@ def evalReq(request, response, config)
 	if __FILE__ == $0
 		debug = true
 	end
+	
+	response.status = RESPONSES[200] 
 
 	#check method
 	response.status = RESPONSES[501]; return response if !config["allowed-methods"].include?(request.method)
@@ -28,7 +30,7 @@ def evalReq(request, response, config)
 		end
 	end
 	
-	response.status = RESPONSES[505]; return response if request.version.split("/")[1].to_f > 1.1
+	#response.status = RESPONSES[505]; return response if request.version.split("/")[1].to_f > 1.1
 	
 	# Method switch goes here
 	# assumes all previous checks passed
@@ -59,10 +61,13 @@ def evalReq(request, response, config)
 	when 'HEAD'
 		# do head things
 		# shouldn't have to anything since everything is done above
+		response.status = RESPONSES[200]
 	when 'OPTIONS'
 		# do options things
 	when 'TRACE'
 		# do trace things
+		response.addHeader("Content-Type", "message/http")
+		response.status = RESPONSES[200]
 		
 	end
 	response.status = RESPONSES[200]
