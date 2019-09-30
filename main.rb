@@ -6,6 +6,7 @@ require "socket"
 require_relative "src/time-date"
 require_relative "src/config-loader"
 require_relative "src/req-res"
+require_relative "src/eval-request"
 
 #Config hierarchy from last to first is
 #  args > file > hardcoded
@@ -32,15 +33,14 @@ puts "Listening on #{host}:#{port} ..."
 loop do
 	Thread.start(socket.accept) do |client|
 		puts "connected to #{client}"
-		message = 'a'
+		message = ''
 
 		while true do
-			message = client.gets("\n")
-			
+			message += client.gets("\n")
+
 			unless message.nil?
-				puts "#{client} " + message
-				response.addHeader("Content-Length", message.length.to_s)
-				client.write response.statusAndHeaders + message 
+				evalReq(Request.new(message),response,config)
+				client.write response
 				client.close
 			end
 		end
