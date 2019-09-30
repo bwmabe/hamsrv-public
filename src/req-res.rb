@@ -40,7 +40,7 @@ class Request
 					headerLines = lines[1...lines.length]
 					headerLines.each { |i| j = i.split(": "); 
 							@headers[j[0]] = j[1];
-							puts j[0] + ":" j[1] }
+							puts j[0] + ":" + j[1]; }
 					
 					# Was going to process empty headers here, but RFC 7231 allows this
 				
