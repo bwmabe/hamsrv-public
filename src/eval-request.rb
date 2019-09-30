@@ -33,6 +33,8 @@ def evalReq(request, response, config)
 	# GET resource at uri to find content type
 	ctype = "text/plain" #Fallback
 	resource = ""
+	
+	response.addHeader("Content-Type", getMIME(request.fname))	
 
 	begin
 		puts request.fullFname if debug
@@ -42,8 +44,6 @@ def evalReq(request, response, config)
 		response.status = RESPONSES[404]
 		response.addHeader("DEBUG", request.fullFname)
 		return response
-	else
-		response.addHeader("Content-Type", getMIME(request.fname))
 	end
 
 	case request.method
