@@ -87,6 +87,7 @@ class Request
 		else
 			temp[1..(temp.length-1)].each { |i| path += "/" + i }
 		end
+		return path
 	end
 
 	def print()
