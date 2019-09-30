@@ -71,9 +71,6 @@ def evalReq(request, response, config)
 		
 	end
 	response.status = RESPONSES[200]
-	testvar = ''
-	request.headers.each{ |i,j| testvar += i + "|" + j + "\n" }
-	response.body = testvar
 	return response
 end
 
