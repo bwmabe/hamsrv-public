@@ -92,6 +92,7 @@ class Request
 
 	def fullFname
 		return path + "/" + fname
+	end
 
 	def print()
 		headerstring = ''
