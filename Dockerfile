@@ -12,4 +12,4 @@ RUN  wget https://github.com/ibnesayeed/cs531-webserver/raw/master/sample/cs531-
 RUN tar -xzf *.tar.gz
 
 ENTRYPOINT ["./main.rb"]
-CMD []
+CMD ["0.0.0.0","80"]
