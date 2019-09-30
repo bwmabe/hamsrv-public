@@ -20,6 +20,8 @@ port = config['port']
 #puts port
 allowed_methods = config["allowed-methods"]
 
+#config["allowed-methods"].each { |i| puts i }
+
 port = ARGV[0] unless ARGV.empty?
 
 time = HamDate.new
