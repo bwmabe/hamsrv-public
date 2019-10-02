@@ -13,7 +13,7 @@ def evalReq(request, response, config)
 	logger = Logger.new(config)
 	
 	# Garbled request
-	if request.uri.empty?
+	if request.uri.nil? || request.uri.nil?
 		puts request.uri if debug
 		response.status = RESPONSES[400]
 		#response.body = request.debugPrint

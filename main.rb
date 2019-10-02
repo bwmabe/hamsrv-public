@@ -36,14 +36,21 @@ loop do
 	Thread.start(socket.accept) do |client|
 		puts "connected to #{client}"
 		message = ''
-
+		#client = socket.accept
 		while true do
-			message = ''
+			message = []
 			response = Response.new
-			message += client.gets("\n")
+			rcv = ''
+			req = ''
 
-			unless message.nil?
-				evalReq(Request.new(message),response,config)
+			while( (rcv = client.gets) && rcv != "\n"  && rcv != "\r\n" )
+				message << rcv
+			end
+			
+			message.each{ |i| req += i}
+			
+			unless req.empty?
+				evalReq(Request.new(req),response,config)
 				client.write response.print
 				client.close
 			end
