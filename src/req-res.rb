@@ -9,14 +9,7 @@ class Request
 			unless req.respond_to? :include?
 				raise ArgumentError "must be string"
 			end
-
-			@directive = ""
-			@method = ""
-			@uri = ""
-			@version = ""
-			@headers = Hash.new
-			@valid = false
-
+			
 			# Split request message into lines
 			if req.include?("\r")
 				lines = req.split("\r\n")
@@ -26,31 +19,37 @@ class Request
 			end
 
 			if lines.length >= 1
-				#main branch
-				@directive = lines[0].split(' ')
-
-				if @directive.length == 3
-					@method = @directive[0]
-					#puts "M" + @method
-					@uri = @directive[1]
-					#puts "U" + @uri
-					@version = @directive[2]
-					
-					# inputs headers
-					# headerLines = lines[1...lines.length]] 
-					# @headers = headerLines.split(":")
-					headerLines = lines[1...lines.length]
-					headerLines.each { |i| j = i.split(": "); 
-							@headers[j[0]] = j[1];}
-					
-					# Was going to process empty headers here, but RFC 7231 allows this
+				# muv = m'ethod, u'ri, v'ersion
+				muv = lines[0].split(' ')
 				
-					# Extract host for URI validation
-					#host = @headers.each { |i,j| return j if i == "Host"}
+				begin
+					@method = muv[0]
+					@uri = muv[1]
+					@version = muv[2].split('/')[1].to_f
+				rescue
+					@method = ""
+					@uri = ""
+					@version = ""
+				end
 
-					#validate method
-					#validate uri
-					#validate version
+				# h_temp temp header array
+				h_temp = lines[1..lines.length]
+				@headers = Hash[h_temp.map { |i| i.split(": ") }]
+				
+				begin
+					if @headers.key?("Host")
+						@host = @headers["Host"]
+					else
+						@host = @uri.split("http://")[-1].split("/")[0]
+					end
+
+					# get path and filename
+					@file_cannonical = @uri.split("http://"+@host)[-1]
+					@filename = @file_cannonical.split('/').reject { |i| i.empty? }[-1]
+				rescue
+					@host = ""
+					@filename = ""
+					@file_cannonical = ""
 				end
 			end
 			
@@ -62,11 +61,11 @@ class Request
 			@version = ""
 			@headers = Hash.new	# Empty by default
 			@valid = false		# Initialzed to false
-			@responseCode = 200	# Defaults to 200 OK
+			#@responseCode = 200	# Defaults to 200 OK
 		end
 	end
 
-	attr_reader :valid, :uri, :headers, :method, :version
+	attr_reader :valid, :uri, :headers, :method, :version, :filename, :file_cannonical, :host
 	attr_writer :headers
 
 	def fname
@@ -85,8 +84,8 @@ class Request
 		return path
 	end
 
-	def fullFname
-		return path + "/" + fname
+	def fullFname()
+		return "." + @file_cannonical
 	end
 
 	def print()
@@ -97,8 +96,11 @@ class Request
 
 	def debugPrint
 		#puts @directive + ":"
-		puts @method + ":"
-		puts path() +":"
+		puts "Method:" + @method + ":"
+		puts "URI:"+@uri+":"
+		puts "HOST:"+@host+":"
+		puts "FILE:"+@filename+":"
+		puts "CANNONICAL:"+@file_cannonical+":"
 		headers.each { |i| puts i[0] + "::" + i[1] }
 	end
 		
