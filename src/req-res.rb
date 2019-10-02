@@ -13,12 +13,7 @@ class Request
 			@host = ""
 			
 			# Split request message into lines
-			if req.include?("\r")
-				lines = req.split("\r\n")
-				#puts lines
-			else
-				lines = req.split("\n")
-			end
+			lines = req.sub("\r","").split("\n")
 
 			if lines.length >= 1
 				# muv = m'ethod, u'ri, v'ersion
