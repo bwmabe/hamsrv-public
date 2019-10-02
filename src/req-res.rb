@@ -40,7 +40,7 @@ class Request
 				begin
 					if @headers.key?("Host")
 						@host = @headers["Host"]
-						@file_cannonical = "." + @uri
+						@file_cannonical = @uri
 					else
 						@host = @uri.split("http://")[-1].split("/")[0]
 						@file_cannonical = @uri.split("http://"+@host)[-1]
