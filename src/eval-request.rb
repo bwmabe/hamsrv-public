@@ -80,6 +80,7 @@ def evalReq(request, response, config)
 		# do trace things
 		response.addHeader("Content-Type", "message/http")
 		response.status = RESPONSES[200]
+		return response
 		
 	end
 	response.status = RESPONSES[200]
