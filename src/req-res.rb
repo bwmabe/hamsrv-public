@@ -36,7 +36,9 @@ class Request
 
 				# h_temp temp header array
 				h_temp = lines[1..lines.length]
-				@headers = Hash[h_temp.map { |i| i.split(": ") }]
+				@headers = Hash[h_temp.map { |i|  i.split(":")}]
+				puts @headers
+				@headers.each { |i,j| j.lstrip!; j.rstrip! }
 				
 				begin
 					if @headers.key?("Host")
@@ -101,8 +103,8 @@ class Request
 		str += "Method:" + @method + ":"
 		str += "\n" + "URI:"+@uri+":"
 		str += "\n" + "HOST:"+@host+":"
-		str += "\n" + "FILE:"+@filename+":"
-		str += "\n" + "CANNONICAL:"+@file_cannonical+":"
+		str += "\n" + "FILE:" + @filename.to_s + ":"
+		str += "\n" + "CANNONICAL:"+@file_cannonical.to_s+":"
 		str += "\n" + headers.to_s
 		return str
 	end
@@ -157,6 +159,6 @@ if __FILE__ == $0
 	r = Request.new("GET /a1-test/a1-test/ HTTP/1.1\nHost: cs531-bmabe\nConnection: close")
 	r2 = Request.new("GET http://test.com/a1-test/a1-test/ HTTP/1.1\nConnection: close")
 	
-	r.debugPrint
-	r2.debugPrint
+	puts r.debugPrint
+	puts r2.debugPrint
 end
