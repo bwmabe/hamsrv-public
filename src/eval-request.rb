@@ -82,6 +82,8 @@ def evalReq(request, response, config)
 		# do trace things
 		response.addHeader("Content-Type", "message/http")
 		response.status = RESPONSES[200]
+		response.body = request.str
+		response.addHeader("Content-Length", response.body.length.to_s)
 		return response
 		
 	end
