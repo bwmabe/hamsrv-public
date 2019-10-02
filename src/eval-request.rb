@@ -12,6 +12,7 @@ def evalReq(request, response, config)
 	
 	# Garbled request
 	if request.uri.empty?
+		puts request.uri if debug
 		response.status = RESPONSES[400]
 		return response
 	end
@@ -27,6 +28,7 @@ def evalReq(request, response, config)
 
 	# Check that host is defined
 	if request.host.empty? and !request.headers.key?("Host")
+		puts "no host" if debug
 		response.status = RESPONSES[400]
 		return response
 	end
@@ -39,6 +41,8 @@ def evalReq(request, response, config)
 		return response
 	else
 		body = file.read
+		response.addHeader("Content-Type", getMIME(request.filename))
+		response.addHeader("Content-Length", file.size.to_s)
 	end
 	# add
 
