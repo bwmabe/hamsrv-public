@@ -40,10 +40,10 @@ loop do
 		while true do
 			message = []
 			response = Response.new
-			rcv = ''
+			rcv = 'a'
 			req = ''
 
-			while( (rcv = client.gets) && rcv != "\n"  && rcv != "\r\n" )
+			while( (rcv = client.gets()) && rcv != "\n"  && rcv != "\r\n" && rcv != '')
 				message << rcv
 			end
 			
