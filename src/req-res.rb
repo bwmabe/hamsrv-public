@@ -103,7 +103,7 @@ class Request
 		str += "\n" + "HOST:"+@host+":"
 		str += "\n" + "FILE:"+@filename+":"
 		str += "\n" + "CANNONICAL:"+@file_cannonical+":"
-		headers.each { |i| str += "\n" +  i[0] + "::" + i[1] }
+		str += "\n" + headers.to_s
 		return str
 	end
 		
