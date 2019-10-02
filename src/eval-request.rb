@@ -84,6 +84,7 @@ def evalReq(request, response, config)
 		response.status = RESPONSES[200]
 		response.body = request.str
 		response.addHeader("Content-Length", response.body.length.to_s)
+		logger.log(request.directive, 200, response.body.length.to_s)
 		return response
 		
 	end
