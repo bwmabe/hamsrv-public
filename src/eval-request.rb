@@ -14,7 +14,7 @@ def evalReq(request, response, config)
 	if request.uri.empty?
 		puts request.uri if debug
 		response.status = RESPONSES[400]
-		response.body = request.debugPrint
+		#response.body = request.debugPrint
 		return response
 	end
 
@@ -31,6 +31,7 @@ def evalReq(request, response, config)
 	if request.host.empty? and !request.headers.key?("Host")
 		puts "no host" if debug
 		response.status = RESPONSES[400]
+		response.body = request.debugPrint
 		return response
 	end
 
