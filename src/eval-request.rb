@@ -3,27 +3,33 @@ require_relative "responses"
 require_relative "config-loader"
 require_relative "mime"
 require_relative "escape"
-
+require_relative "logger"
 def evalReq(request, response, config)
 	if __FILE__ == $0
 		debug = true
 		#config["allowed-methods"].each { |i| puts i }
 	end
 	
+	logger = Logger.new(config)
+	
 	# Garbled request
 	if request.uri.empty?
 		puts request.uri if debug
 		response.status = RESPONSES[400]
 		#response.body = request.debugPrint
+		logger.log(request.directive, 400, 0)
 		return response
 	end
 
 	if request.version > 1.1
 		response.status = RESPONSES[505]
+		logger.log(request.directive, 505, 0)
+		return response
 	end
 
 	if !config["allowed-methods"].include?(request.method)
 		response.status = RESPONSES[501]
+		logger.log(request.directive, 501, 0)
 		return response
 	end
 
@@ -32,23 +38,26 @@ def evalReq(request, response, config)
 		puts "no host" if debug
 		response.status = RESPONSES[400]
 		response.body += request.str.to_s
+		logger.log(request.directive, 400, 0)
 		return response
 	end
-
-	if request.uri == "/.well-known/access.log" && request.method == "GET"
-		#Open the file for the access log and serve it
-	end
-
+		
 	# check if file found
 	begin
-		file = File.new( request.fullFname().remEscapes,"r" )
+		if request.uri == "/.well-known/access.log HTTP/1.1"
+			file = File.new( config['log-file'], 'r')
+		else
+			file = File.new( request.fullFname().remEscapes,"r" )
+		end
 	rescue
 		response.status = RESPONSES[404]
+		logger.log(request.directive, 404, 0)
 		return response
 	else
 		body = file.read
 		response.addHeader("Content-Type", getMIME(request.filename))
 		response.addHeader("Content-Length", file.size.to_s)
+		logger.log(request.directive, 200, file.size.to_s)
 	end
 	# add
 

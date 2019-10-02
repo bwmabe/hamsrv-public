@@ -32,6 +32,7 @@ class Request
 				# h_temp temp header array
 				h_temp = lines[1..lines.length-1]
 				@str = lines[1].to_s
+				@directive = lines[0].to_s
 				@headers = Hash[h_temp.map { |i|  i.split(":")}]
 				puts @headers
 				@headers.each { |i,j| j.lstrip!; j.rstrip! }
@@ -64,7 +65,7 @@ class Request
 		end
 	end
 
-	attr_reader :valid, :uri, :headers, :method, :version, :filename, :file_cannonical, :host, :lines, :str
+	attr_reader :valid, :uri, :headers, :method, :version, :filename, :file_cannonical, :host, :lines, :str, :directive
 	attr_writer :headers, :host
 
 	def fname

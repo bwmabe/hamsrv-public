@@ -13,7 +13,7 @@ class Logger
 	end
 		 
 	def log(directive, status, fsize)
-		File.open(@file, "w").write(@host + " - - [" + @time.logTime + "] \"" + directive + "\" " + status.to_s + " " + fsize.to_s)
+		File.write(@file, @host + " - - [" + @time.logTime + "] \"" + directive + "\" " + status.to_s + " " + fsize.to_s + "\r\n", mode: "a")
 	end
 end
 if __FILE__ == $0
