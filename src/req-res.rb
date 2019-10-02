@@ -35,7 +35,7 @@ class Request
 				@directive = lines[0].to_s
 				@headers = Hash[h_temp.map { |i|  i.split(":")}]
 				puts @headers
-				@headers.each { |i,j| j.lstrip!; j.rstrip! }
+				@headers.each { |i,j| j = j.lstrip; j = j.rstrip }
 				
 				begin
 					if @headers.key?("Host")
