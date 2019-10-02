@@ -37,7 +37,7 @@ def evalReq(request, response, config)
 	if request.host.empty? and !request.headers.key?("Host")
 		puts "no host" if debug
 		response.status = RESPONSES[400]
-		response.body += request.str.to_s
+		response.body = request.str.to_s
 		logger.log(request.directive, 400, 0)
 		return response
 	end
