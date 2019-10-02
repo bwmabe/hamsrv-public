@@ -107,4 +107,8 @@ if __FILE__ == $0
 	puts r3.print
 	puts "+_+_+_+_+_+_+_+_+_+_+_+_+_+_+"
 	puts evalReq(r3,res,conf).print
+
+	res=Response.new
+	puts "_)(_)*)(*)(*^(*&^)*&)*(&)(*)"
+	puts evalReq(r4,res,conf).print
 end
