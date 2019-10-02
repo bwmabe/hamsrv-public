@@ -68,7 +68,7 @@ class Request
 		end
 	end
 
-	attr_reader :valid, :uri, :headers, :method, :version, :filename, :file_cannonical, :host
+	attr_reader :valid, :uri, :headers, :method, :version, :filename, :file_cannonical, :host, :lines
 	attr_writer :headers, :host
 
 	def fname
@@ -158,7 +158,9 @@ end
 if __FILE__ == $0
 	r = Request.new("GET /a1-test/a1-test/ HTTP/1.1\nHost: cs531-bmabe\nConnection: close")
 	r2 = Request.new("GET http://test.com/a1-test/a1-test/ HTTP/1.1\nConnection: close")
+	r3 = Request.new("HEAD /a1-test/2/index.html HTTP/1.1\nHost: cs531-bmabe\nConnection: close")
 	
 	puts r.debugPrint
 	puts r2.debugPrint
+	puts r3.debugPrint
 end

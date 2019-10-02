@@ -31,8 +31,12 @@ def evalReq(request, response, config)
 	if request.host.empty? and !request.headers.key?("Host")
 		puts "no host" if debug
 		response.status = RESPONSES[400]
-		response.body = request.debugPrint
+		response.body = request.lines.each{ |i| return i }
 		return response
+	end
+
+	if request.uri == "/.well-known/access.log" && request.method == "GET"
+		#Open the file for the access log and serve it
 	end
 
 	# check if file found
@@ -56,9 +60,13 @@ def evalReq(request, response, config)
 	when 'HEAD'
 		# do head things
 		# shouldn't have to anything since everything is done above
-		response.status = RESPONSES[200]
+		#response.status = RESPONSES[200]
 	when 'OPTIONS'
 		# do options things
+		allow = ""
+		config["allowed-methods"].each{ |i| allow += i + ", " }
+		allow.delete_suffix!(", ")
+		response.addHeader("Allow",allow)
 	when 'TRACE'
 		# do trace things
 		response.addHeader("Content-Type", "message/http")
@@ -75,6 +83,7 @@ if __FILE__ == $0
 	req1 = Request.new("GT http://example.com HTTP/1.1123")
 	req2 = Request.new("GET http://foo.bar:6969/test.png HTTP/1.1")
 	r3 = Request.new("HEAD /test.txt HTTP/1.0")
+	r4 = Request.new("HEAD /a1-test/2/index.html HTTP/1.1\r\nHost: cs531-bmabe\r\nConnection: close")
 	res = Response.new
 
 	conf["allowed-methods"].each { |i| puts i }
