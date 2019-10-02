@@ -31,7 +31,7 @@ class Request
 
 				# h_temp temp header array
 				h_temp = lines[1..lines.length-1]
-				@str = lines.to_s
+				@str = lines[1].to_s
 				@headers = Hash[h_temp.map { |i|  i.split(":")}]
 				puts @headers
 				@headers.each { |i,j| j.lstrip!; j.rstrip! }
