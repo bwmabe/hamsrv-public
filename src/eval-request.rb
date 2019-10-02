@@ -44,20 +44,22 @@ def evalReq(request, response, config)
 		
 	# check if file found
 	begin
-		if request.uri == "/.well-known/access.log"
+		if request.uri == "/.well-known/access.log" && request.method != "TRACE"
 			file = File.new( config['log-file'], 'r')
-		else
+		elsif request.method != "TRACE"
 			file = File.new( request.fullFname().remEscapes,"r" )
 		end
 	rescue
 		response.status = RESPONSES[404]
-		logger.log(request.fullFname, 404, 0)
+		logger.log(request.directive, 404, 0)
 		return response
 	else
-		body = file.read
-		response.addHeader("Content-Type", getMIME(request.filename))
-		response.addHeader("Content-Length", file.size.to_s)
-		logger.log(request.directive, 200, file.size.to_s)
+		if request.method != "TRACE"
+			body = file.read
+			response.addHeader("Content-Type", getMIME(request.filename))
+			response.addHeader("Content-Length", file.size.to_s)
+			logger.log(request.directive, 200, file.size.to_s)
+		end
 	end
 	# add
 
