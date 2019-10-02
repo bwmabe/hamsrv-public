@@ -44,7 +44,7 @@ def evalReq(request, response, config)
 		
 	# check if file found
 	begin
-		if request.uri == "/.well-known/access.log HTTP/1.1"
+		if request.uri == "/.well-known/access.log"
 			file = File.new( config['log-file'], 'r')
 		else
 			file = File.new( request.fullFname().remEscapes,"r" )
