@@ -40,12 +40,14 @@ class Request
 				begin
 					if @headers.key?("Host")
 						@host = @headers["Host"]
+						@file_cannonical = "." + @uri
 					else
 						@host = @uri.split("http://")[-1].split("/")[0]
+						@file_cannonical = @uri.split("http://"+@host)[-1]
 					end
 
 					# get path and filename
-					@file_cannonical = @uri.split("http://"+@host)[-1]
+					#@file_cannonical = @uri.split("http://"+@host)[-1]
 					@filename = @file_cannonical.split('/').reject { |i| i.empty? }[-1]
 				rescue
 					@host = ""

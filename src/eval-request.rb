@@ -51,7 +51,7 @@ def evalReq(request, response, config)
 		end
 	rescue
 		response.status = RESPONSES[404]
-		logger.log(request.uri, 404, 0)
+		logger.log(request.fullFname, 404, 0)
 		return response
 	else
 		body = file.read
