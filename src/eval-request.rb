@@ -2,65 +2,45 @@ require_relative "req-res"
 require_relative "responses"
 require_relative "config-loader"
 require_relative "mime"
+require_relative "escape"
 
 def evalReq(request, response, config)
 	if __FILE__ == $0
 		debug = true
-		config["allowed-methods"].each { |i| puts i }
+		#config["allowed-methods"].each { |i| puts i }
 	end
 	
-	response.status = RESPONSES[200] 
+	# Garbled request
+	if request.uri.empty?
+		response.status = RESPONSES[400]
+		return response
+	end
 
-	#check method
+	if request.version > 1.1
+		response.status = RESPONSES[505]
+	end
+
 	if !config["allowed-methods"].include?(request.method)
-		if config["extant-methods"].include?(request.method)
-			response.status = RESPONSES[400]
-		else 
-			response.status = RESPONSES[501]
-		end
-		
+		response.status = RESPONSES[501]
 		return response
 	end
-	#puts "method good" if debug
-	
-	#check uri
-	# - Make sure Host is declared if uri does not begin with http://
 
-	# Don't even attempt to make sure that the URI is usable if it contains invalid chars
-	#return RESPONSES[400] if !request.uri.include?("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~:/?#[]@!$&()*+,;=")
-	#puts "URI is all allowed chars" if debug
-
-	if !request.uri.include?("http")
-		if !request.headers.key?('Host')
-		# If host is not in URI; bad request if host is not in headers either
-			response.status = RESPONSES[501]
-		#response.addHeader("DBG", request.fullFname)
-			return response
-		end
+	# Check that host is defined
+	if request.host.empty? and !request.headers.key?("Host")
+		response.status = RESPONSES[400]
+		return response
 	end
-	
-	#response.status = RESPONSES[505]; return response if request.version.split("/")[1].to_f > 1.1
-	
-	# Method switch goes here
-	# assumes all previous checks passed
-	
-	# GET resource at uri to find content type
-	ctype = "text/plain" #Fallback
-	resource = ""
-	
-	response.addHeader("Content-Type", getMIME(request.fname))	
 
+	# check if file found
 	begin
-		puts request.fullFname if debug
-		resource = File.new(request.fullFname, "r")
-		body = resource.read
-		response.addHeader("Content-Length", resource.size.to_s)
+		file = File.new( request.fullFname().remEscapes,"r" )
 	rescue
-		response.addHeader("Content-Type", ctype)
 		response.status = RESPONSES[404]
-		response.addHeader("DEBUG", request.fullFname)
 		return response
+	else
+		body = file.read
 	end
+	# add
 
 	case request.method
 	when 'GET'
