@@ -5,10 +5,12 @@ class Request
 	# @param the whole request as a multi-line string
 	#  or nothing at all
 	def initialize(req)
+		@host = ""
 		if req != nil
 			unless req.respond_to? :include?
 				raise ArgumentError "must be string"
 			end
+			@host = ""
 			
 			# Split request message into lines
 			if req.include?("\r")
@@ -58,15 +60,14 @@ class Request
 			@directive = ""
 			@method = ""
 			@uri = ""
-			@version = ""
-			@headers = Hash.new	# Empty by default
-			@valid = false		# Initialzed to false
-			#@responseCode = 200	# Defaults to 200 OK
+			@version = 1.1
+			@host =  ""
+			@headers = Hash.new
 		end
 	end
 
 	attr_reader :valid, :uri, :headers, :method, :version, :filename, :file_cannonical, :host
-	attr_writer :headers
+	attr_writer :headers, :host
 
 	def fname
 		temp = @uri.split("/")
@@ -91,17 +92,19 @@ class Request
 	def print()
 		headerstring = ''
 		@headers.each{ |i,j| headerstring += i + ": " + j + "\r\n" }
-		return @method + " " + @uri + " " + @version + "\r\n" +headerstring
+		return @method + " " + @uri + " " + @version.to_s + "\r\n" +headerstring
 	end
 
 	def debugPrint
 		#puts @directive + ":"
-		puts "Method:" + @method + ":"
-		puts "URI:"+@uri+":"
-		puts "HOST:"+@host+":"
-		puts "FILE:"+@filename+":"
-		puts "CANNONICAL:"+@file_cannonical+":"
-		headers.each { |i| puts i[0] + "::" + i[1] }
+		str = ""
+		str += "Method:" + @method + ":"
+		str += "\n" + "URI:"+@uri+":"
+		str += "\n" + "HOST:"+@host+":"
+		str += "\n" + "FILE:"+@filename+":"
+		str += "\n" + "CANNONICAL:"+@file_cannonical+":"
+		headers.each { |i| str += "\n" +  i[0] + "::" + i[1] }
+		return str
 	end
 		
 end
@@ -151,8 +154,8 @@ end
 
 
 if __FILE__ == $0
-	r = Request.new("GET /a1-test/a1-test/ HTTP/1.1\r\nHost: cs531-bmabe\r\nConnection: close")
-	r2 = Request.new("GET http://test.com/a1-test/a1-test/ HTTP/1.1\r\nConnection: close")
+	r = Request.new("GET /a1-test/a1-test/ HTTP/1.1\nHost: cs531-bmabe\nConnection: close")
+	r2 = Request.new("GET http://test.com/a1-test/a1-test/ HTTP/1.1\nConnection: close")
 	
 	r.debugPrint
 	r2.debugPrint
