@@ -14,6 +14,7 @@ def evalReq(request, response, config)
 	if request.uri.empty?
 		puts request.uri if debug
 		response.status = RESPONSES[400]
+		response.body = request.debugPrint
 		return response
 	end
 
