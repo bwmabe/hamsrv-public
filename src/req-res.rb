@@ -38,7 +38,7 @@ class Request
 				@headers.each { |i,j| j = j.lstrip; j = j.rstrip }
 				
 				begin
-					if @headers.key?("Host")
+					if @headers.key?("Host") && !@uri.include?("http://"+@host)
 						@host = @headers["Host"]
 						@file_cannonical = @uri
 					else
