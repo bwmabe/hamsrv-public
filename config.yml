@@ -1,0 +1,5 @@
+host: "0.0.0.0"
+port: 9999
+allowed-methods: ["gET", "HEAD", "Options", "Trace"]
+extant-methods: ["get", "head", "options", "trace", "post", "put", "delete", "connect", "patch"]
+log-file: "test.log"
