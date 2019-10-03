@@ -52,7 +52,7 @@ loop do
 			unless req.empty?
 				evalReq(Request.new(req),response,client.peeraddr[-1],config)
 				client.write response.print
-				puts "Connection to #{client.peeraddr[-1]}:#{port} closed"
+				puts "Connection to #{client.peeraddr[-1]}:#{port} closed by host"
 				client.close
 				closed = true
 			end	
