@@ -6,18 +6,19 @@ class Request
 	#  or nothing at all
 	def initialize(req)
 		@host = ""
-		
-		if req != nil
+		lines = req.sub("\r","").split("\n")
+		if req != nil && lines[0].lstrip! == nil
 			unless req.respond_to? :include?
 				raise ArgumentError "must be string"
 			end
 			@host = ""
 			
 			# Split request message into lines
-			lines = req.sub("\r","").split("\n")
+			# lines = req.sub("\r","").split("\n")
 
 			if lines.length >= 1
 				# muv = m'ethod, u'ri, v'ersion
+				#unless lines[0].lstrip! == nil ; end
 				muv = lines[0].split(' ')
 				
 				begin
