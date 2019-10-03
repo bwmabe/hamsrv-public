@@ -6,6 +6,7 @@ class Request
 	#  or nothing at all
 	def initialize(req)
 		@host = ""
+
 		lines = req.sub("\r","").split("\n")
 		if req != nil && lines[0].lstrip! == nil
 			unless req.respond_to? :include?
@@ -36,7 +37,6 @@ class Request
 				@str = req
 				@directive = lines[0].to_s
 				@headers = Hash[h_temp.map { |i|  i.split(":")}]
-				puts @headers
 				@headers.each { |i,j| j = j.lstrip; j = j.rstrip }
 				
 				begin
