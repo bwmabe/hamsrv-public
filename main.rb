@@ -37,26 +37,26 @@ loop do
 		puts "connected to #{client.peeraddr[-1]}:#{port}"
 		
 		message = ''
+		closed = false
 		#client = socket.accept
-		while true do
+		while !closed do
 			message = []
 			response = Response.new
 			rcv = 'a'
 			req = ''
-
+			
 			while( (rcv = client.gets()) && rcv != "\n"  && rcv != "\r\n" && rcv != '')
 				message << rcv
-			end
-			
+			end			
 			message.each{ |i| req += i}
-			
 			unless req.empty?
 				evalReq(Request.new(req),response,client.peeraddr[-1],config)
 				client.write response.print
 				client.close
-			end
+				closed = true
+			end	
 		end
 
-		puts "disconnected from #{client}"		
+		#puts "disconnected from #{client}"		
 	end
 end
