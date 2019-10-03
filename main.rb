@@ -34,7 +34,7 @@ puts "Listening on #{host}:#{port} ..."
 
 loop do
 	Thread.start(socket.accept) do |client|
-		puts "connected to #{client.peeraddr}"
+		puts "connected to #{client.peeraddr[-1]}:#{port}"
 		
 		message = ''
 		#client = socket.accept
