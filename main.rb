@@ -34,7 +34,8 @@ puts "Listening on #{host}:#{port} ..."
 
 loop do
 	Thread.start(socket.accept) do |client|
-		puts "connected to #{client}"
+		puts "connected to #{client.peeraddr}"
+		
 		message = ''
 		#client = socket.accept
 		while true do
@@ -50,7 +51,7 @@ loop do
 			message.each{ |i| req += i}
 			
 			unless req.empty?
-				evalReq(Request.new(req),response,config)
+				evalReq(Request.new(req),response,client.peeraddr[-1],config)
 				client.write response.print
 				client.close
 			end

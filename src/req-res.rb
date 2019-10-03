@@ -6,6 +6,7 @@ class Request
 	#  or nothing at all
 	def initialize(req)
 		@host = ""
+		
 		if req != nil
 			unless req.respond_to? :include?
 				raise ArgumentError "must be string"

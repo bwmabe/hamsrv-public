@@ -10,10 +10,11 @@ class Logger
 		@time = HamDate.new
 		@host = conf['host']
 		@file = conf['log-file']
+		@web_root = conf['web-root']
 	end
 		 
-	def log(directive, status, fsize)
-		File.write(@file, @host + " - - [" + @time.logTime + "] \"" + directive + "\" " + status.to_s + " " + fsize.to_s + "\r\n", mode: "a")
+	def log(ip, directive, status, fsize)
+		File.write(@file, ip + " - - [" + @time.logTime + "] \"" + directive + "\" " + status.to_s + " " + fsize.to_s + "\r\n", mode: "a")
 	end
 end
 if __FILE__ == $0

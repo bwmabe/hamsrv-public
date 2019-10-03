@@ -4,7 +4,7 @@ require_relative "config-loader"
 require_relative "mime"
 require_relative "escape"
 require_relative "logger"
-def evalReq(request, response, config)
+def evalReq(request, response, ip, config)
 	if __FILE__ == $0
 		debug = true
 		#config["allowed-methods"].each { |i| puts i }
@@ -17,19 +17,19 @@ def evalReq(request, response, config)
 		puts request.uri if debug
 		response.status = RESPONSES[400]
 		#response.body = request.debugPrint
-		logger.log(request.directive, 400, 0)
+		logger.log(ip, request.directive, 400, 0)
 		return response
 	end
 
 	if request.version > 1.1
 		response.status = RESPONSES[505]
-		logger.log(request.directive, 505, 0)
+		logger.log(ip, request.directive, 505, 0)
 		return response
 	end
 
 	if !config["allowed-methods"].include?(request.method)
 		response.status = RESPONSES[501]
-		logger.log(request.directive, 501, 0)
+		logger.log(ip, request.directive, 501, 0)
 		return response
 	end
 
@@ -38,7 +38,7 @@ def evalReq(request, response, config)
 		puts "no host" if debug
 		response.status = RESPONSES[400]
 		response.body = request.str.to_s
-		logger.log(request.directive, 400, 0)
+		logger.log(ip, request.directive, 400, 0)
 		return response
 	end
 		
@@ -51,14 +51,14 @@ def evalReq(request, response, config)
 		end
 	rescue
 		response.status = RESPONSES[404]
-		logger.log(request.directive, 404, 0)
+		logger.log(ip, request.directive, 404, 0)
 		return response
 	else
 		if request.method != "TRACE"
 			body = file.read
 			response.addHeader("Content-Type", getMIME(request.filename))
 			response.addHeader("Content-Length", file.size.to_s)
-			logger.log(request.directive, 200, file.size.to_s)
+			logger.log(ip, request.directive, 200, file.size.to_s)
 		end
 	end
 	# add
@@ -84,7 +84,7 @@ def evalReq(request, response, config)
 		response.status = RESPONSES[200]
 		response.body = request.str
 		response.addHeader("Content-Length", response.body.length.to_s)
-		logger.log(request.directive, 200, response.body.length.to_s)
+		logger.log(ip, request.directive, 200, response.body.length.to_s)
 		return response
 		
 	end
