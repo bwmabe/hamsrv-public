@@ -15,17 +15,38 @@ RESPONSES =
 		505 => "505 HTTP Version Not Supported"
 	}
 
+DESCRIPTIONS =
+	{
+		400 => "The client has sent a request that wasn't understood",
+		403 => "You are forbidden from accessing this file",
+		404 => "The file you have requested has not been found",
+		500 => "The server is broken!",
+		501 => "The requested method has not be implemented",
+		505 => "That version of HTTP is not supported"
+	}
+
 PAGE_TEMPLATE = "<!DOCTYPE html>\n<html>\n<head><title>$ERR_MESSAGE</title></head>\n<body><h1>$ERR_MESSAGE</h1>$DESCRIPTION</body>\n</html>"
 
 def ERROR_PAGE(err)
 	page = ""
 	page.replace(PAGE_TEMPLATE)
 	#page.gsub!("XXX", err.to_s)
-	page.gsub!("$ERR_MESSAGE",RESPONSES[err])
+	if RESPONSES[err].nil?
+		page.gsub!("$ERR_MESSAGE", RESPONSES[500])
+		page.gsub!("$DESCRIPTION", DESCRIPTIONS[500])
+	else
+		page.gsub!("$ERR_MESSAGE",RESPONSES[err])
+	
+		if DESCRIPTIONS[err].nil?
+			page.gsub!("$DESCRIPTION",RESPONSES[err])
+		else
+			page.gsub!("$DESCRIPTION",DESCRIPTION[err])
+		end
+	end
 
 	return page
 end
 
 if __FILE__ == $0
-	File.open("test.html", "w").write(ERROR_PAGE(400))
+	File.open("test.html", "w").write(ERROR_PAGE(76897667))
 end
