@@ -4,6 +4,8 @@ require_relative "config-loader"
 require_relative "mime"
 require_relative "escape"
 require_relative "logger"
+require_relative "etag"
+
 def evalReq(request, response, ip, config)
 	if __FILE__ == $0
 		debug = true
@@ -56,6 +58,7 @@ def evalReq(request, response, ip, config)
 	else
 		if request.method != "TRACE"
 			body = file.read
+			response.addHeader("ETag", file.gen_etag)
 			response.addHeader("Content-Type", getMIME(request.filename))
 			response.addHeader("Content-Length", file.size.to_s)
 			logger.log(ip, request.directive, 200, file.size.to_s)
@@ -101,6 +104,8 @@ if __FILE__ == $0
 	r4 = Request.new("HEAD /a1-test/2/index.html HTTP/1.1\r\nHost: cs531-bmabe\r\nConnection: close")
 	res = Response.new
 
+	ip = "69.69.69.69"
+
 	conf["allowed-methods"].each { |i| puts i }
 
 	r3.headers["Host"] = "foo.bar"
@@ -109,21 +114,21 @@ if __FILE__ == $0
 
 	puts "-----"
 
-	puts evalReq(req1, res, conf).print
+	puts evalReq(req1, res, ip, conf).print
 	
 	puts "------"
 	puts req2.print()
 	puts "------"
 	res = Response.new
 
-	puts evalReq(req2, res, conf).print
+	puts evalReq(req2, res, ip, conf).print
 	res=Response.new
 	puts "====-=-=-=-=-=---=---==="
 	puts r3.print
 	puts "+_+_+_+_+_+_+_+_+_+_+_+_+_+_+"
-	puts evalReq(r3,res,conf).print
+	puts evalReq(r3,res,ip,conf).print
 
 	res=Response.new
 	puts "_)(_)*)(*)(*^(*&^)*&)*(&)(*)"
-	puts evalReq(r4,res,conf).print
+	puts evalReq(r4,res,ip,conf).print
 end
