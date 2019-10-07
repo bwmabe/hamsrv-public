@@ -25,6 +25,10 @@ class Time
 	def self.hamNow()
 		return Time.now.utc.strftime("%a, %d %b %Y %H:%M:%S") + " GMT"
 	end
+	
+	def hamNow()
+		return self.utc.strftime("%a, %d %b %Y %H:%M:%S") + " GMT"
+	end
 end
 
 #time = HamDate.new

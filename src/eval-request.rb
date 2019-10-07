@@ -4,6 +4,7 @@ require_relative "config-loader"
 require_relative "mime"
 require_relative "escape"
 require_relative "logger"
+require_relative "time-date"
 require_relative "etag"
 
 def evalReq(request, response, ip, config)
@@ -58,6 +59,7 @@ def evalReq(request, response, ip, config)
 	else
 		if request.method != "TRACE"
 			body = file.read
+			response.addHeader("Last-Modified", file.mtime.hamNow)
 			response.addHeader("ETag", file.gen_etag)
 			response.addHeader("Content-Type", getMIME(request.filename))
 			response.addHeader("Content-Length", file.size.to_s)
