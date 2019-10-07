@@ -143,7 +143,7 @@ class Response
 	end
 
 	def statusAndHeaders
-		@headers["Date"] = HamDate.new.now
+		@headers["Date"] = Time.hamNow()
 		@headers["Connection"] = "close"
 
 		return  @version + @status + "\r\n" + self.headerStr + "\r\n"
