@@ -4,7 +4,7 @@ require_relative "time-date"
 class Request
 	# @param the whole request as a multi-line string
 	#  or nothing at all
-	def initialize(req)
+	def initialize(req, *webroot)
 		@host = ""
 
 		lines = req.sub("\r","").split("\n")
@@ -13,6 +13,7 @@ class Request
 				raise ArgumentError "must be string"
 			end
 			@host = ""
+			@root = webroot
 			
 			# Split request message into lines
 			# lines = req.sub("\r","").split("\n")
@@ -89,7 +90,11 @@ class Request
 	end
 
 	def fullFname()
-		return "." + @file_cannonical
+		unless @root.empty?
+			return "./" + @root[0] + @file_cannonical
+		else
+			return "." + @file_cannonical
+		end
 	end
 
 	def print()
@@ -105,7 +110,7 @@ class Request
 		str += "\n" + "URI:"+@uri+":"
 		str += "\n" + "HOST:"+@host+":"
 		str += "\n" + "FILE:" + @filename.to_s + ":"
-		str += "\n" + "CANNONICAL:"+@file_cannonical.to_s+":"
+		str += "\n" + "CANNONICAL:"+self.fullFname+":"
 		str += "\n" + headers.to_s
 		return str
 	end
@@ -157,9 +162,10 @@ end
 
 
 if __FILE__ == $0
+	webroot = "ROOT"
 	r = Request.new("GET /a1-test/a1-test/ HTTP/1.1\nHost: cs531-bmabe\nConnection: close")
-	r2 = Request.new("GET http://test.com/a1-test/a1-test/ HTTP/1.1\nConnection: close")
-	r3 = Request.new("HEAD /a1-test/2/index.html HTTP/1.1\nHost: cs531-bmabe\nConnection: close")
+	r2 = Request.new("GET http://test.com/a1-test/a1-test/ HTTP/1.1\nConnection: close", "fortnite")
+	r3 = Request.new("HEAD /a1-test/2/index.html HTTP/1.1\nHost: cs531-bmabe\nConnection: close", webroot)
 	
 	puts r.debugPrint
 	puts r2.debugPrint
