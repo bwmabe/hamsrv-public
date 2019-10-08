@@ -55,6 +55,7 @@ def evalReq(request, response, ip, config)
 	rescue
 		response.status = RESPONSES[404]
 		logger.log(ip, request.directive, 404, 0)
+		response.body = request.fullFname()
 		return response
 	else
 		if request.method != "TRACE"
