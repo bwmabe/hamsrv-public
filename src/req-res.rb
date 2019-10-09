@@ -128,9 +128,8 @@ class Response
 		@headers["Server"] = "hamsrv 0.0.1"
 	end
 
-	attr_accessor :status, :body
+	attr_accessor :status, :body, :headers
 	attr_reader :version
-	attr_writer :headers
 
 	def statusline
 		@statusline = @version + @status
