@@ -80,14 +80,56 @@ def evalReq(request, response, ip, config)
 			if newer?(file.mtime.hamNow,request.headers["If-Modified-Since"])
 				response.status = RESPONSES[200]
 				response.body = body
+				logger.log(ip, request.directive, 200, file.size.to_s)
 				return response
 			else
-				response.status = RESPONSES[412]
+				response.status = RESPONSES[304]
+				logger.log(ip, request.directive, 304, 0)
 				return response
 			end
 		elsif request.headers.key?("If-Unmodified-Since")
+			if !newer?(file.mtime.hamNow,request.headers["If-Unmodified-Since"])
+                                response.status = RESPONSES[200]
+                                response.body = body
+                                logger.log(ip, request.directive, 200, file.size.to_s)
+                                return response
+                        else
+                                response.status = RESPONSES[412]
+                                logger.log(ip, request.directive, 412, 0)
+                                return response
+                        end
 		elsif request.headers.key?("If-Match")
+			if response.headers["ETag"] == request.etag
+				response.status = RESPONSES[200]
+				response.body = body
+				logger.log(ip, request.directive, 200, file.size.to_s)
+				return response
+			else
+				response.status = RESPONSE[412]
+				logger.log(ip, request.directive, 412, 0)
+				return response
+			end
 		elsif request.headers.key?("If-None-Match")
+			if request.headers["If-None-Match"].is_a?(Array)
+				for i in request.headers["If-None-Match"] do
+					if i == request.etag
+						response.status = RESPONSES[304]
+						logger.log(ip, request.directive, 304, 0)
+						return response
+					end
+				end
+			else
+				if request.headers["If-None-Match"] == request.etag
+					response.status = RESPONSES[304]
+					logger.log(ip, request.directive, 304, 0)
+					return response
+				else
+					repsonse.status = RESPONSES[200]
+					response.body = body
+					logger.log(ip, request.directive, 200, file.size.to_s)
+					return response
+				end
+			end
 		end
 		response.body = body
 	when 'HEAD'
