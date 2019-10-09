@@ -99,7 +99,7 @@ def evalReq(request, response, ip, config)
                                 return response
                         end
 		elsif request.headers.key?("If-Match")
-			if response.headers["ETag"] == "\"" + file.gen_etag + "\""
+			if response.headers["ETag"] == request.headers["If-Match"]
 				response.status = RESPONSES[200]
 				response.body = body
 				logger.log(ip, request.directive, 200, file.size.to_s)
@@ -160,7 +160,7 @@ def evalReq(request, response, ip, config)
                                 return response
                         end
 		elsif request.headers.key?("If-Match")
-			if response.headers["ETag"] == "\"" + file.gen_etag + "\""
+			if response.headers["ETag"] == request.headers["If-Match"]
 				response.status = RESPONSES[200]
 				#response.body = body
 				logger.log(ip, request.directive, 200, file.size.to_s)
