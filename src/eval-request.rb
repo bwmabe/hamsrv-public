@@ -112,7 +112,7 @@ def evalReq(request, response, ip, config)
 		elsif request.headers.key?("If-None-Match")
 			if request.headers["If-None-Match"].is_a?(Array)
 				for i in request.headers["If-None-Match"] do
-					if i == request.etag
+					if i == "\"" + file.gen_etag + "\""
 						response.status = RESPONSES[304]
 						logger.log(ip, request.directive, 304, 0)
 						return response

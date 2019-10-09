@@ -39,6 +39,13 @@ class Request
 				@directive = lines[0].to_s
 				@headers = Hash[h_temp.map { |i|  i.split(":",2)}]
 				@headers.each { |i,j| j = j.lstrip; j = j.rstrip }
+
+				if @headers.key?("If-None-Match")
+					#@headers["If-None-Match"].tr!("\\",'')
+					@headers["If-None-Match"] = @headers["If-None-Match"].split(",")
+				end
+				
+#				if @headers.key?("If-Match") || @headers.key?
 				
 				begin
 					if @headers.key?("Host") && !@uri.include?("http://"+@host)
@@ -112,6 +119,7 @@ class Request
 		str += "\n" + "FILE:" + @filename.to_s + ":"
 		str += "\n" + "CANNONICAL:"+self.fullFname+":"
 		str += "\n" + headers.to_s
+		str += "\n" + @headers["If-None-Match"][0] if @headers.key?("If-None-Match")
 		return str
 	end
 		
@@ -163,7 +171,7 @@ end
 if __FILE__ == $0
 	webroot = "ROOT"
 	r = Request.new("GET /a1-test/a1-test/ HTTP/1.1\nHost: cs531-bmabe\nConnection: close")
-	r2 = Request.new("GET http://test.com/a1-test/a1-test/ HTTP/1.1\nConnection: close", "fortnite")
+	r2 = Request.new("GET http://test.com/a1-test/a1-test/ HTTP/1.1\nIf-None-Match:\"aaa\",\"bbbb\",\"cccc\"\nConnection: close", "fortnite")
 	r3 = Request.new("GET http://cs531-bmabe/a1-test/1/1.2/arXiv.org.Idenitfy.repsonse.xml HTTP/1.1\nHost: cs531-bmabe\nIf-Modified-Since: Wed, 09 Sep 2009 13:37:37 GMT\nConnection: close", webroot)
 	
 	puts r.debugPrint
