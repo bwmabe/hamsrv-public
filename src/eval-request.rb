@@ -64,7 +64,8 @@ def evalReq(request, response, ip, config)
 			response.addHeader("ETag", "\"" + file.gen_etag + "\"")
 			response.addHeader("Content-Type", getMIME(request.filename))
 			response.addHeader("Content-Length", file.size.to_s)
-			logger.log(ip, request.directive, 200, file.size.to_s)
+			#logger.log(ip, request.directive, 200, file.size.to_s)
+			# Moved to under the 'GET' branch 
 		end
 	end
 	# add
@@ -73,11 +74,27 @@ def evalReq(request, response, ip, config)
 	when 'GET'
 		# check if file exists
 		# check if file readable
+		# Above are done outside of GET method branch
+		if request.headers.key?("If-Modified-Since")
+			# compare dates
+			if newer?(file.mtime.hamNow,request.headers["If-Modified-Since"])
+				response.status = RESPONSES[200]
+				response.body = body
+				return response
+			else
+				response.status = RESPONSES[412]
+				return response
+			end
+		elsif request.headers.key?("If-Unmodified-Since")
+		elsif request.headers.key?("If-Match")
+		elsif request.headers.key?("If-None-Match")
+		end
 		response.body = body
 	when 'HEAD'
 		# do head things
 		# shouldn't have to anything since everything is done above
 		#response.status = RESPONSES[200]
+		logger.log(ip, request.directive, 200, file.size.to_s)
 	when 'OPTIONS'
 		# do options things
 		allow = ""
