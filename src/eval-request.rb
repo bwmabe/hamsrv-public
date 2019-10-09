@@ -99,7 +99,7 @@ def evalReq(request, response, ip, config)
                                 return response
                         end
 		elsif request.headers.key?("If-Match")
-			if response.headers["ETag"] == request.etag
+			if response.headers["ETag"] == "\"" + file.gen_etag + "\""
 				response.status = RESPONSES[200]
 				response.body = body
 				logger.log(ip, request.directive, 200, file.size.to_s)
@@ -119,7 +119,7 @@ def evalReq(request, response, ip, config)
 					end
 				end
 			else
-				if request.headers["If-None-Match"] == request.etag
+				if request.headers["If-None-Match"] == "\"" + file.gen_etag + "\""
 					response.status = RESPONSES[304]
 					logger.log(ip, request.directive, 304, 0)
 					return response
@@ -160,7 +160,7 @@ def evalReq(request, response, ip, config)
                                 return response
                         end
 		elsif request.headers.key?("If-Match")
-			if response.headers["ETag"] == request.etag
+			if response.headers["ETag"] == "\"" + file.gen_etag + "\""
 				response.status = RESPONSES[200]
 				#response.body = body
 				logger.log(ip, request.directive, 200, file.size.to_s)
@@ -173,14 +173,14 @@ def evalReq(request, response, ip, config)
 		elsif request.headers.key?("If-None-Match")
 			if request.headers["If-None-Match"].is_a?(Array)
 				for i in request.headers["If-None-Match"] do
-					if i == request.etag
+					if i == "\"" + file.gen_etag + "\""
 						response.status = RESPONSES[304]
 						logger.log(ip, request.directive, 304, 0)
 						return response
 					end
 				end
 			else
-				if request.headers["If-None-Match"] == request.etag
+				if request.headers["If-None-Match"] == "\"" + file.gen_etag + "\""
 					response.status = RESPONSES[304]
 					logger.log(ip, request.directive, 304, 0)
 					return response
