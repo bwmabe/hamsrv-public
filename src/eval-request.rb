@@ -105,7 +105,7 @@ def evalReq(request, response, ip, config)
 				logger.log(ip, request.directive, 200, file.size.to_s)
 				return response
 			else
-				response.status = RESPONSE[412]
+				response.status = RESPONSES[412]
 				logger.log(ip, request.directive, 412, 0)
 				return response
 			end
@@ -166,7 +166,7 @@ def evalReq(request, response, ip, config)
 				logger.log(ip, request.directive, 200, file.size.to_s)
 				return response
 			else
-				response.status = RESPONSE[412]
+				response.status = RESPONSES[412]
 				logger.log(ip, request.directive, 412, 0)
 				return response
 			end
