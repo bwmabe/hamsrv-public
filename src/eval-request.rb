@@ -61,7 +61,7 @@ def evalReq(request, response, ip, config)
 		if request.method != "TRACE"
 			body = file.read
 			response.addHeader("Last-Modified", file.mtime.hamNow)
-			response.addHeader("ETag", file.gen_etag)
+			response.addHeader("ETag", "\"" + file.gen_etag + "\"")
 			response.addHeader("Content-Type", getMIME(request.filename))
 			response.addHeader("Content-Length", file.size.to_s)
 			logger.log(ip, request.directive, 200, file.size.to_s)
