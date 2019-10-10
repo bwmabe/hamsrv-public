@@ -46,6 +46,10 @@ def handleConnection(client,config)
 			end
 
 			# Send the response
+			if req.headers.key?("Connection")
+				response.addHeader("Connection", "close") if req.headers["Connection"] == "close"
+				close = true
+			end
 			client.write response.print
 		end
 	end
