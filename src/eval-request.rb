@@ -245,7 +245,7 @@ if __FILE__ == $0
 
 #	res=Response.new
 #	puts "_)(_)*)(*)(*^(*&^)*&)*(&)(*)"
-#	puts r4.print
+#	puts r4.print 
 #	puts "-------"
 #	puts evalReq(r4,res,ip,conf).print
 
