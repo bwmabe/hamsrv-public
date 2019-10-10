@@ -4,6 +4,7 @@ require_relative "time-date"
 require_relative "config-loader"
 require_relative "req-res"
 require_relative "eval-request"
+require_relative "responses"
 
 def isBlank?( *x )
 	begin
@@ -36,6 +37,7 @@ def handleConnection(client,config)
 
 		# If the message is not empty; process the request form the client
 		unless request.empty?
+			lastRequest = Time.now
 			# request, response, client ip, config file
 			unless isBlank?( config["web-root"] )
 				req = Request.new(request, config["web-root"])
@@ -53,6 +55,14 @@ def handleConnection(client,config)
 				end
 			end
 			client.write response.print
+		end
+
+		if Time.now.to_i - lastRequest.to_i >= config["timeout"].to_i
+			response = Response.new
+			response.status = RESPONSES[408]
+			response.body = ERROR_PAGE(408)
+			client.write response.print
+			close = true
 		end
 	end
 	client.close

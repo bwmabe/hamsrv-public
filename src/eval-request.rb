@@ -68,6 +68,7 @@ def evalReq(request, response, ip, config)
 				clen = file.size.to_s
 				ctype = getMIME(request.filename)
 			rescue
+				
 				body = genDirListing(request.fullFname().remEscapes, request.root)
 				clen = body.length.to_s
 				ctype = "text/html"
