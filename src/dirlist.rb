@@ -13,7 +13,7 @@ def genDirListing(fname, webroot)
 	html_start = "<!DOCTYPE html>\n<html><head><title>Index of $LOC</title></head>\n<body>\n<h1>Index of $LOC</h1>"
 	html_end = "</body></html>"
 
-	link_start = "<a href=\"$PATH\">$FNAME<a>"
+	link_start = "<a href=\"$PATH\">$FNAME</a>"
 
 	# line format: link_start\tsize\tmodified
 
