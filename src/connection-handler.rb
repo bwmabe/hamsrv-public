@@ -38,7 +38,7 @@ def handleConnection(client,config)
 		unless request.empty?
 			# request, response, client ip, config file
 			unless isBlank?( config["web-root"] )
-				req = Request.new(request, config["web-root"]
+				req = Request.new(request, config["web-root"])
 				evalReq(req, response, ip, config)
 			else
 				req = Request.new(request)
@@ -47,8 +47,7 @@ def handleConnection(client,config)
 
 			# Send the response
 			if req.headers.key?("Connection")
-				response.addHeader("Connection", "close") if req.headers["Connection"] == "close"
-				close = true
+				response.addHeader("Connection", "close") if req.headers["Connection"].include? "close"
 			end
 			client.write response.print
 		end
