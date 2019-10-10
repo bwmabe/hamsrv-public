@@ -1,25 +1,31 @@
 def genDirListing(fname, webroot)
-	begin
-		if File.directory?(fname)
-			list = Dir.entries(fname)
-		else
-			list = Dir.entries(fname.realdirpath.sub(fname,""))
-		end
-		
-		list.split!(webroot)[-1]
+	list = Dir.entries(fname)
+	
+	fname = fname.split(webroot[0])[-1]
+	files = list.select{|f| !File.directory? "./" + webroot[0] + fname + f}
+	dirs =  list.select{|f| File.directory? "./" + webroot[0] + fname + f}
 
-		files = list.select{|f| !File.directory? f}
-		dirs =  list.select{|f| File.directory? f}
-	rescue
-		#return 501 error page
-	end
 
-	html-start = "<!DOCTYPE html>\n<html><head><title>Index of $LOC</title></head>\n<body><h1></h1>"
+	dirs.delete(".")
+	dirs.delete("..")
+	#return 501 error page
+
+	html_start = "<!DOCTYPE html>\n<html><head><title>Index of $LOC</title></head>\n<body><h1></h1>"
 	html_end = "</body></html>"
 
 	link_start = "<a href=\"$PATH\">$FNAME<a>"
 
 	# line format: link_start\tsize\tmodified
 
-	html_start.sub!("$LOC", list)
+	html_start.sub!("$LOC", fname)
+
+	body = ""
+	
+	dirs.each{|i| temp = link_start.sub("$FNAME",i + "/"); 
+		      body += temp.sub("$PATH", fname + i) + "\n" 
+		 }
+	files.each{|i| temp = link_start.sub("$FNAME", i);
+		       body += temp.sub("$PATH",fname + i) + "\n" }
+	
+	return html_start + "\n" + body + html_end
 end

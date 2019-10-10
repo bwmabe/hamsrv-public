@@ -77,7 +77,7 @@ class Request
 		end
 	end
 
-	attr_reader :valid, :uri, :headers, :method, :version, :filename, :file_cannonical, :host, :lines, :str, :directive
+	attr_reader :valid, :uri, :headers, :method, :version, :filename, :file_cannonical, :host, :lines, :str, :directive, :root
 	attr_writer :headers, :host
 
 	def fname

@@ -6,6 +6,7 @@ require_relative "escape"
 require_relative "logger"
 require_relative "time-date"
 require_relative "etag"
+require_relative "dirlist"
 
 def evalReq(request, response, ip, config)
 	if __FILE__ == $0
@@ -61,13 +62,15 @@ def evalReq(request, response, ip, config)
 		if request.method != "TRACE"
 			begin
 				body = file.read
+				clen = file.size.to_s
 			rescue
-				body = genDirListing(request.fullFname().remEscapes, request.webroot)
+				body = genDirListing(request.fullFname().remEscapes, request.root)
+				clen = body.length.to_s
 			end
 			response.addHeader("Last-Modified", file.mtime.hamNow)
 			response.addHeader("ETag", "\"" + file.gen_etag + "\"")
 			response.addHeader("Content-Type", getMIME(request.filename))
-			response.addHeader("Content-Length", file.size.to_s)
+			response.addHeader("Content-Length", clen)
 			#logger.log(ip, request.directive, 200, file.size.to_s)
 			# Moved to under the 'GET' branch 
 		end
