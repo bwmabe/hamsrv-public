@@ -20,6 +20,7 @@ def evalReq(request, response, ip, config)
 	if request.uri.empty? || request.uri.nil?
 		puts request.uri if debug
 		response.status = RESPONSES[400]
+		response.body = ERROR_PAGE(400)
 		#response.body = request.debugPrint
 		logger.log(ip, request.directive, 400, 0)
 		return response
@@ -27,12 +28,14 @@ def evalReq(request, response, ip, config)
 
 	if request.version > 1.1
 		response.status = RESPONSES[505]
+		response.body = ERROR_PAGE(505)
 		logger.log(ip, request.directive, 505, 0)
 		return response
 	end
 
 	if !config["allowed-methods"].include?(request.method)
 		response.status = RESPONSES[501]
+		response.body = ERROR_PAGE(501)
 		logger.log(ip, request.directive, 501, 0)
 		return response
 	end
@@ -41,7 +44,7 @@ def evalReq(request, response, ip, config)
 	if request.host.empty? and !request.headers.key?("Host")
 		puts "no host" if debug
 		response.status = RESPONSES[400]
-		response.body = request.str.to_s
+		response.body = ERROR_PAGE(400)
 		logger.log(ip, request.directive, 400, 0)
 		return response
 	end
@@ -56,7 +59,7 @@ def evalReq(request, response, ip, config)
 	rescue
 		response.status = RESPONSES[404]
 		logger.log(ip, request.directive, 404, 0)
-		#response.body = request.fullFname()
+		response.body = ERROR_PAGE(404)
 		return response
 	else
 		if request.method != "TRACE"
@@ -104,6 +107,7 @@ def evalReq(request, response, ip, config)
                                 return response
                         else
                                 response.status = RESPONSES[412]
+				response.body = ERROR_PAGE(412)
                                 logger.log(ip, request.directive, 412, 0)
                                 return response
                         end
@@ -115,6 +119,7 @@ def evalReq(request, response, ip, config)
 				return response
 			else
 				response.status = RESPONSES[412]
+				response.body = ERROR_PAGE(412)
 				logger.log(ip, request.directive, 412, 0)
 				return response
 			end
@@ -123,6 +128,7 @@ def evalReq(request, response, ip, config)
 				for i in request.headers["If-None-Match"] do
 					if i.lstrip.rstrip == "\"" + file.gen_etag + "\""
 						response.status = RESPONSES[304]
+						response.body = ERROR_PAGE(304)
 						logger.log(ip, request.directive, 304, 0)
 						return response
 					end
@@ -131,6 +137,7 @@ def evalReq(request, response, ip, config)
 				if request.headers["If-None-Match"] == "\"" + file.gen_etag + "\""
 					response.status = RESPONSES[304]
 					logger.log(ip, request.directive, 304, 0)
+					response.body = ERROR_PAGE(304)
 					return response
 				else
 					repsonse.status = RESPONSES[200]

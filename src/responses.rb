@@ -40,7 +40,7 @@ def ERROR_PAGE(err)
 		if DESCRIPTIONS[err].nil?
 			page.gsub!("$DESCRIPTION",RESPONSES[err])
 		else
-			page.gsub!("$DESCRIPTION",DESCRIPTION[err])
+			page.gsub!("$DESCRIPTION",DESCRIPTIONS[err])
 		end
 	end
 
