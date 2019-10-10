@@ -59,7 +59,11 @@ def evalReq(request, response, ip, config)
 		return response
 	else
 		if request.method != "TRACE"
-			body = file.read
+			begin
+				body = file.read
+			rescue
+				body = genDirListing(request.fullFname().remEscapes, request.webroot)
+			end
 			response.addHeader("Last-Modified", file.mtime.hamNow)
 			response.addHeader("ETag", "\"" + file.gen_etag + "\"")
 			response.addHeader("Content-Type", getMIME(request.filename))
@@ -220,33 +224,34 @@ if __FILE__ == $0
 	req2 = Request.new("GET http://foo.bar:6969/test.png HTTP/1.1")
 	r3 = Request.new("HEAD /test.txt HTTP/1.0")
 	r4 = Request.new("HEAD /a1-test/2/index.html HTTP/1.1\r\nHost: cs531-bmabe\r\nConnection: close")
+	r5 = Request.new("GET /a2-test/ HTTP/1.1\r\nHost: cs531-bmabe", conf["web-root"])
 	res = Response.new
 
 	ip = "69.69.69.69"
 
-	conf["allowed-methods"].each { |i| puts i }
-
-	r3.headers["Host"] = "foo.bar"
-
-	puts req1.print()
-
-	puts "-----"
-
-	puts evalReq(req1, res, ip, conf).print
-	
+	#puts evalReq(req1, res, ip, conf).print
+	req2 = r5
 	puts "------"
-	puts req2.print()
+	puts r5.print()
 	puts "------"
 	res = Response.new
+	puts evalReq(r5, res, ip, conf).print
 
-	puts evalReq(req2, res, ip, conf).print
-	res=Response.new
-	puts "====-=-=-=-=-=---=---==="
-	puts r3.print
-	puts "+_+_+_+_+_+_+_+_+_+_+_+_+_+_+"
-	puts evalReq(r3,res,ip,conf).print
+#	res=Response.new
+#	puts "====-=-=-=-=-=---=---==="
+#	puts r3.print
+#	puts "+_+_+_+_+_+_+_+_+_+_+_+_+_+_+"
+#	puts evalReq(r3,res,ip,conf).print
 
-	res=Response.new
-	puts "_)(_)*)(*)(*^(*&^)*&)*(&)(*)"
-	puts evalReq(r4,res,ip,conf).print
+#	res=Response.new
+#	puts "_)(_)*)(*)(*^(*&^)*&)*(&)(*)"
+#	puts r4.print
+#	puts "-------"
+#	puts evalReq(r4,res,ip,conf).print
+
+#	res=Response.new
+#	puts "--------"
+#	puts r5.print
+#	puts "--------[][][]["
+#	puts evalReq(r5,res,ip,conf).print
 end
