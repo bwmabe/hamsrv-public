@@ -44,6 +44,10 @@ def newer?(t1,t2)
 			
 			t1d, t1month, t1y, t1time = t1regex[0].split[1..4]
 			t2d, t2month, t2y, t2time = t2regex[0].split[1..4]
+			t1h, t1m, t1s = t1time.split(":").map{|i| i.to_i}
+			t2h, t2m, t2s = t2time.split(":").map{|i| i.to_i}
+
+			return false if t1y == t2y && t1month == t2month && t1d == t2d && t1h == t2h && t1m == t2m && t1s == t2s
 
 			# Compare years
 			return false if t1y.to_i < t2y.to_i
@@ -58,8 +62,6 @@ def newer?(t1,t2)
 			return true if t1d.to_i > t1d.to_i
 		
 			# Compare time
-			t1h, t1m, t1s = t1time.split(":").map{|i| i.to_i}
-			t2h, t2m, t2s = t2time.split(":").map{|i| i.to_i}
 			return false if t1h < t2h
 			return true if t1h > t2h
 	
@@ -91,4 +93,5 @@ if __FILE__ == $0
 	sleep 3
 	t2 = Time.hamNow()
 	puts newer?(t1, t2)
+	puts newer?(t1, t1)
 end
