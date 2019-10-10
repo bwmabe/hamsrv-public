@@ -10,10 +10,10 @@ def genDirListing(fname, webroot)
 	dirs.delete("..")
 	#return 501 error page
 
-	html_start = "<!DOCTYPE html>\n<html><head><title>Index of $LOC</title></head>\n<body>\n<h1>Index of $LOC</h1>"
+	html_start = "<!DOCTYPE html>\n<html><head><title>Index of $LOC</title></head>\n<body>\n<h1>Index of $LOC</h1><ul>"
 	html_end = "</body></html>"
 
-	link_start = "<a href=\"$PATH\">$FNAME</a>"
+	link_start = "<li><a href=\"$PATH\">$FNAME</a></li>\n"
 
 	# line format: link_start\tsize\tmodified
 
