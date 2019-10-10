@@ -20,6 +20,7 @@ host = config['host']
 port = config['port']
 #puts port
 allowed_methods = config["allowed-methods"]
+#puts config["timeout"]
 
 #config["allowed-methods"].each { |i| puts i }
 
