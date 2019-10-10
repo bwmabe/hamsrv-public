@@ -21,6 +21,8 @@ def handleConnection(client,config)
 	#message = ''
 	close = false
 	timeout = false
+
+	lastRequest = Time.now
 	
 	while !close
 		message = []
