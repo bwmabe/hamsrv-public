@@ -24,6 +24,7 @@ if __FILE__ == $0
 	cfg["extant-methods"].each{ |i| puts i + "|" }
 	puts cfg["web-root"]
 	puts cfg["default-page"]
+	puts cfg["timeout"]
 
 	cfg2 = load_config("filethatdoesn'texist.filename")
 	puts "Making sure exception kills the program"
