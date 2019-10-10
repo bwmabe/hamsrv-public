@@ -153,7 +153,7 @@ def evalReq(request, response, ip, config)
 		# do head things
 		# shouldn't have to anything since everything is done above
 		#response.status = RESPONSES[200]
-		repsonse.body = "\r\n"
+		response.body = "\r\n"
 		if request.headers.key?("If-Modified-Since")
 			# compare dates
 			if newer?(file.mtime.hamNow,request.headers["If-Modified-Since"])
