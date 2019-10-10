@@ -10,10 +10,10 @@ def genDirListing(fname, webroot)
 	dirs.delete("..")
 	#return 501 error page
 
-	html_start = "<!DOCTYPE html>\n<html><head><title>Index of $LOC</title></head>\n<body>\n<h1>Index of $LOC</h1><ul>"
-	html_end = "</body></html>"
+	html_start = "<!DOCTYPE html>\n<html><head><title>Index of $LOC</title></head>\n<body>\n<h1>Index of $LOC</h1><table style=\"width:50\%\"><thead><tr><th align=\"left\"><b>Filename</b></th><th align=\"right\"><b>Size</b></th><th align\"right\"><b>Last Modified</b></th></tr></thead><tbody>"
+	html_end = "</tbody></table></body></html>"
 
-	link_start = "<li><a href=\"$PATH\">$FNAME</a></li>\n"
+	link_start = "<tr><td align=\"left\"><a href=\"$PATH\">$FNAME</a></td>"
 
 	# line format: link_start\tsize\tmodified
 
@@ -23,11 +23,15 @@ def genDirListing(fname, webroot)
 	
 	dirs.each{|i| 	temp = link_start.sub("$FNAME",i + "/"); 
 			temp.sub!("$PATH", fname + i);
-			temp += File.open("./" + webroot[0] + fname + i).mtime.to_s
+			f = File.open("./" + webroot[0] + fname + i)
+			temp += "<td align = \"right\">" + f.size.to_s+ "<td align=\"right\">" + f.mtime.strftime("%I:%M:%S - %B %d %Y") + "</td></tr>"
 			body += temp
 		 }
-	files.each{|i| temp = link_start.sub("$FNAME", i);
-		       body += temp.sub("$PATH",fname + i) + "\n" }
+	files.each{|i| temp = link_start.sub("$FNAME",i + "/"); 
+			temp.sub!("$PATH", fname + i);
+			f = File.open("./" + webroot[0] + fname + i)
+			temp += "<td align=\"right\">" + f.size.to_s + "<td align=\"right\">" + f.mtime.strftime("%I:%M:%S - %B %d %Y") + "</td></tr>"
+			body += temp }
 	
 	return html_start + "\n" + body + html_end
 end
