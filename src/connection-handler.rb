@@ -60,7 +60,7 @@ def handleConnection(client,config)
 		if Time.now.to_i - lastRequest.to_i >= config["timeout"].to_i
 			response = Response.new
 			response.status = RESPONSES[408]
-			response.body = ERROR_PAGE(408)
+			#response.body = ERROR_PAGE(408)
 			client.write response.print
 			close = true
 		end
