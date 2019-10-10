@@ -134,6 +134,7 @@ class Response
 		@body = ''
 
 		@headers["Server"] = "hamsrv 0.0.1"
+		@headers["Date"] = Time.hamNow()
 	end
 
 	attr_accessor :status, :body, :headers
