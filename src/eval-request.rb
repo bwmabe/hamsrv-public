@@ -63,13 +63,15 @@ def evalReq(request, response, ip, config)
 			begin
 				body = file.read
 				clen = file.size.to_s
+				ctype = getMIME(request.filename)
 			rescue
 				body = genDirListing(request.fullFname().remEscapes, request.root)
 				clen = body.length.to_s
+				ctype = "text/html"
 			end
 			response.addHeader("Last-Modified", file.mtime.hamNow)
 			response.addHeader("ETag", "\"" + file.gen_etag + "\"")
-			response.addHeader("Content-Type", getMIME(request.filename))
+			response.addHeader("Content-Type", ctype)
 			response.addHeader("Content-Length", clen)
 			#logger.log(ip, request.directive, 200, file.size.to_s)
 			# Moved to under the 'GET' branch 
