@@ -21,8 +21,10 @@ def genDirListing(fname, webroot)
 
 	body = ""
 	
-	dirs.each{|i| temp = link_start.sub("$FNAME",i + "/"); 
-		      body += temp.sub("$PATH", fname + i) + "\n" 
+	dirs.each{|i| 	temp = link_start.sub("$FNAME",i + "/"); 
+			temp.sub!("$PATH", fname + i);
+			temp += File.open("./" + webroot[0] + fname + i).mtime.to_s
+			body += temp
 		 }
 	files.each{|i| temp = link_start.sub("$FNAME", i);
 		       body += temp.sub("$PATH",fname + i) + "\n" }
