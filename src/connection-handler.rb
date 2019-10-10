@@ -47,12 +47,13 @@ def handleConnection(client,config)
 				req = Request.new(request)
 				evalReq(req, response, ip, config)
 			end
-
+			timeout = true
 			# Send the response
 			if req.headers.key?("Connection")
 				if req.headers["Connection"].include? "close"
 					response.addHeader("Connection", "close")
 					close = true
+					timeout = false
 				elsif req.headers["Connection"].include? "keep-alive"
 					timeout = true
 				end
