@@ -20,6 +20,7 @@ def handleConnection(client,config)
 	
 	#message = ''
 	close = false
+	timeout = false
 	
 	while !close
 		message = []
@@ -52,19 +53,23 @@ def handleConnection(client,config)
 				if req.headers["Connection"].include? "close"
 					response.addHeader("Connection", "close")
 					close = true
+				elsif req.headers["Connection"].include? "keep-alive"
+					timeout = true
 				end
 			end
 			client.write response.print
 		end
 
-		if Time.now.to_i - lastRequest.to_i > config["timeout"].to_i && !close
+		if Time.now.to_i - lastRequest.to_i >= config["timeout"].to_i && timeout
 			response = Response.new
 			response.status = RESPONSES[408]
 			#response.body = ERROR_PAGE(408)
 			client.write response.print
 			close = true
+			timeout = false
 		end
 	end
 	client.close
+	timeout = false
 	puts "disconnected from #{ip}:#{config["port"]}"
 end
