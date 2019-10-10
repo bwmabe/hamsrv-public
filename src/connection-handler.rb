@@ -68,6 +68,7 @@ def handleConnection(client,config)
 			response.status = RESPONSES[408]
 			#response.body = ERROR_PAGE(408)
 			client.write response.print
+			puts Time.now.to_i - lastRequest.to_i
 			close = true
 			timeout = false
 		end
