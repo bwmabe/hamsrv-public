@@ -26,6 +26,7 @@ def handleConnection(client,config)
 	
 	while !close
 		message = []
+		#Thread.new {while true; puts Time.now}
 		response = Response.new
 		rcv = 'a'
 		request = ''
