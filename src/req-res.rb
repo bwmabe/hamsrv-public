@@ -24,7 +24,7 @@ class Request
 				muv = lines[0].split(' ')
 				
 				begin
-					@method = muv[0]
+					@method = muv[-3]
 					@uri = muv[1]
 					@version = muv[2].split('/')[1].to_f
 				rescue
