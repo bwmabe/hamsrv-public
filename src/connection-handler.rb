@@ -47,11 +47,14 @@ def handleConnection(client,config)
 
 			# Send the response
 			if req.headers.key?("Connection")
-				response.addHeader("Connection", "close") if req.headers["Connection"].include? "close"
+				if req.headers["Connection"].include? "close"
+					response.addHeader("Connection", "close")
+					close = true
+				end
 			end
 			client.write response.print
 		end
 	end
-
+	client.close
 	puts "disconnected from #{ip}:#{config["port"]}"
 end
