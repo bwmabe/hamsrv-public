@@ -38,9 +38,11 @@ def handleConnection(client,config)
 		unless request.empty?
 			# request, response, client ip, config file
 			unless isBlank?( config["web-root"] )
-				evalReq(Request.new(request, config["web-root"]), response, ip, config)
+				req = Request.new(request, config["web-root"]
+				evalReq(req, response, ip, config)
 			else
-				evalReq(Request.new(request), response, ip, config)
+				req = Request.new(request)
+				evalReq(req, response, ip, config)
 			end
 
 			# Send the response
