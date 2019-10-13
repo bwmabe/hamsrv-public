@@ -47,7 +47,7 @@ def handleConnection(client,config)
 		# message.join
 		loop do
 			# If the message is not empty; process the request form the client
-			if message.last == "\n" || message.last == "\r\n"
+			if message.last == "\n" || message.last == "\r\n" || message.last == ""
 				request = message.join
 				message = []
 			end
@@ -68,6 +68,8 @@ def handleConnection(client,config)
 					if req.headers.key?("Connection")
 						if req.headers["Connection"].include? "close"
 							response.addHeader("Connection", "close")
+							client.write response.print
+							client.close
 							close = true
 							timeout = false
 						elsif req.headers["Connection"].include? "keep-alive"
