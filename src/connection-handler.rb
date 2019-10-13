@@ -20,8 +20,7 @@ def handleConnection(client,config)
 	
 	#message = ''
 	close = false
-	timeout = false
-
+	timeout = true
 	lastRequest = Time.now
 	
 	while !close
@@ -32,46 +31,67 @@ def handleConnection(client,config)
 		request = ''
 
 		# recieve the message from the client; wait until newline or blank
-		while ( (rcv = client.gets()) && rcv != "\n" && rcv != "\r\n" && rcv != '' )
-			message << rcv
+		Thread.start(client) do |c|
+			begin
+				c.each_line do |l|
+					message.append l
+					lastRequest = Time.now
+				end
+			rescue
+				#supress error on disconnected
+			end
 		end
 
 		# Concatenate the message
-		message.each{|i| request += i}
-
-		# If the message is not empty; process the request form the client
-		unless request.empty?
-			lastRequest = Time.now
-			# request, response, client ip, config file
-			unless isBlank?( config["web-root"] )
-				req = Request.new(request, config["web-root"])
-				evalReq(req, response, ip, config)
-			else
-				req = Request.new(request)
-				evalReq(req, response, ip, config)
+		# message.each{|i| request += i}
+		# message.join
+		loop do
+			# If the message is not empty; process the request form the client
+			if message.last == "\n" || message.last == "\r\n"
+				request = message.join
+				message = []
 			end
-			timeout = true
-			# Send the response
-			if req.headers.key?("Connection")
-				if req.headers["Connection"].include? "close"
-					response.addHeader("Connection", "close")
-					close = true
-					timeout = false
-				elsif req.headers["Connection"].include? "keep-alive"
+			unless request.empty?
+				# lastRequest = Time.now
+				# request, response, client ip, config file
+				unless isBlank?( config["web-root"] )
+					req = Request.new(request, config["web-root"])
+					evalReq(req, response, ip, config)
+				else
+					req = Request.new(request)
+					evalReq(req, response, ip, config)
+				end
+				
+				timeout = true
+				# Send the response
+				begin
+					if req.headers.key?("Connection")
+						if req.headers["Connection"].include? "close"
+							response.addHeader("Connection", "close")
+							close = true
+							timeout = false
+						elsif req.headers["Connection"].include? "keep-alive"
+							timeout = true
+						end
+					end
+				rescue
 					timeout = true
 				end
+				client.write response.print
+				request = ''
 			end
-			client.write response.print
-		end
-
-		if ((Time.now.to_i - lastRequest.to_i) >= config["timeout"].to_i) && timeout
-			response = Response.new
-			response.status = RESPONSES[408]
-			#response.body = ERROR_PAGE(408)
-			client.write response.print
-			puts Time.now.to_i - lastRequest.to_i
-			close = true
-			timeout = false
+			
+			if ((Time.now.to_i - lastRequest.to_i) >= config["timeout"].to_i) && timeout
+				response = Response.new
+				response.status = RESPONSES[408]
+				#response.body = ERROR_PAGE(408)
+				client.write response.print
+				puts response.print
+				puts Time.now.to_i - lastRequest.to_i
+				close = true
+				client.close 
+				timeout = false
+			end
 		end
 	end
 	client.close

@@ -8,6 +8,14 @@ require_relative "time-date"
 require_relative "etag"
 require_relative "dirlist"
 
+def isBlank?( *x )
+	begin
+		return x[0].empty?
+	rescue 
+		return x[0].nil?
+	end
+end
+
 def evalReq(request, response, ip, config)
 	if __FILE__ == $0
 		debug = true
@@ -17,7 +25,7 @@ def evalReq(request, response, ip, config)
 	logger = Logger.new(config)
 	
 	# Garbled request
-	if request.uri.empty? || request.uri.nil?
+	if isBlank?(request.uri)
 		puts request.uri if debug
 		response.status = RESPONSES[400]
 		response.body = ERROR_PAGE(400)

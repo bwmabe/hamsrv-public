@@ -14,7 +14,7 @@ class Logger
 	end
 		 
 	def log(ip, directive, status, fsize)
-		File.write(@file, ip + " - - [" + @time.logTime + "] \"" + directive + "\" " + status.to_s + " " + fsize.to_s + "\r\n", mode: "a")
+		File.write(@file, ip + " - - [" + @time.logTime + "] \"" + directive.to_s + "\" " + status.to_s + " " + fsize.to_s + "\r\n", mode: "a")
 	end
 end
 if __FILE__ == $0

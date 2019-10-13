@@ -8,72 +8,74 @@ class Request
 		@host = ""
 
 		lines = req.sub("\r","").split("\n")
-		if req != nil && lines[0].lstrip! == nil
-			unless req.respond_to? :include?
-				raise ArgumentError "must be string"
-			end
-			@host = ""
-			@root = webroot
-			
-			# Split request message into lines
-			# lines = req.sub("\r","").split("\n")
-
-			if lines.length >= 1
-				# muv = m'ethod, u'ri, v'ersion
-				#unless lines[0].lstrip! == nil ; end
-				muv = lines[0].split(' ')
-				
-				begin
-					@method = muv[-3]
-					@uri = muv[1]
-					@version = muv[2].split('/')[1].to_f
-				rescue
-					@method = ""
-					@uri = ""
-					@version = ""
+		unless lines[0].nil?
+			if req != nil && lines[0].lstrip! == nil
+				unless req.respond_to? :include?
+					raise ArgumentError "must be string"
 				end
-
-				# h_temp temp header array
-				h_temp = lines[1..lines.length-1]
-				@str = req
-				@directive = lines[0].to_s
-				@headers = Hash[h_temp.map { |i|  i.split(":",2)}]
-				@headers.each { |i,j| j = j.lstrip; j = j.rstrip }
-
-				if @headers.key?("If-None-Match")
-					#@headers["If-None-Match"].tr!("\\",'')
-					@headers["If-None-Match"] = @headers["If-None-Match"].split(",")
-				end
+				@host = ""
+				@root = webroot
 				
-#				if @headers.key?("If-Match") || @headers.key?
-				
-				begin
-					if @headers.key?("Host") && !@uri.include?("http://"+@host)
-						@host = @headers["Host"]
-						@file_cannonical = @uri
-					else
-						@host = @uri.split("http://")[-1].split("/")[0]
-						@file_cannonical = @uri.split("http://"+@host)[-1]
+				# Split request message into lines
+				# lines = req.sub("\r","").split("\n")
+
+				if lines.length >= 1
+					# muv = m'ethod, u'ri, v'ersion
+					#unless lines[0].lstrip! == nil ; end
+					muv = lines[0].split(' ')
+					
+					begin
+						@method = muv[-3]
+						@uri = muv[1]
+						@version = muv[2].split('/')[1].to_f
+					rescue
+						@method = ""
+						@uri = ""
+						@version = ""
 					end
 
-					# get path and filename
-					#@file_cannonical = @uri.split("http://"+@host)[-1]
-					@filename = @file_cannonical.split('/').reject { |i| i.empty? }[-1]
-				rescue
-					@host = ""
-					@filename = ""
-					@file_cannonical = ""
+					# h_temp temp header array
+					h_temp = lines[1..lines.length-1]
+					@str = req
+					@directive = lines[0].to_s
+					@headers = Hash[h_temp.map { |i|  i.split(":",2)}]
+					@headers.each { |i,j| if !j.nil?; j = j.lstrip; j = j.rstrip; end}
+
+					if @headers.key?("If-None-Match")
+						#@headers["If-None-Match"].tr!("\\",'')
+						@headers["If-None-Match"] = @headers["If-None-Match"].split(",")
+					end
+					
+	#				if @headers.key?("If-Match") || @headers.key?
+					
+					begin
+						if @headers.key?("Host") && !@uri.include?("http://"+@host)
+							@host = @headers["Host"]
+							@file_cannonical = @uri
+						else
+							@host = @uri.split("http://")[-1].split("/")[0]
+							@file_cannonical = @uri.split("http://"+@host)[-1]
+						end
+
+						# get path and filename
+						#@file_cannonical = @uri.split("http://"+@host)[-1]
+						@filename = @file_cannonical.split('/').reject { |i| i.empty? }[-1]
+					rescue
+						@host = ""
+						@filename = ""
+						@file_cannonical = ""
+					end
 				end
+				
+				
+			else
+				@directive = ""
+				@method = ""
+				@uri = ""
+				@version = 1.1
+				@host =  ""
+				@headers = Hash.new
 			end
-			
-			
-		else
-			@directive = ""
-			@method = ""
-			@uri = ""
-			@version = 1.1
-			@host =  ""
-			@headers = Hash.new
 		end
 	end
 

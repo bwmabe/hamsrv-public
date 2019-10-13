@@ -25,7 +25,7 @@ DESCRIPTIONS =
 		505 => "That version of HTTP is not supported"
 	}
 
-PAGE_TEMPLATE = "<!DOCTYPE html>\n<html>\n<head><title>$ERR_MESSAGE</title></head>\n<body><h1>$ERR_MESSAGE</h1>$DESCRIPTION</body>\n</html>"
+PAGE_TEMPLATE = "<!DOCTYPE html>\n<html>\n<head><title>$ERR_MESSAGE</title></head>\n<body><h1>$ERR_MESSAGE</h1>$DESCRIPTION</body>\n</html>\n"
 
 def ERROR_PAGE(err)
 	page = ""
