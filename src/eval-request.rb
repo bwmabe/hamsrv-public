@@ -8,6 +8,8 @@ require_relative "time-date"
 require_relative "etag"
 require_relative "dirlist"
 
+LOCSTR = "\"http://.*\""
+
 def isBlank?( *x )
 	begin
 		return x[0].empty?
@@ -76,10 +78,18 @@ def evalReq(request, response, ip, config)
 				clen = file.size.to_s
 				ctype = getMIME(request.filename)
 			rescue
-				
-				body = genDirListing(request.fullFname().remEscapes, request.root)
+				body = genDirListing(request.fullFname().remEscapes, request.root, request.host)
 				clen = body.length.to_s
 				ctype = "text/html"
+				if body.include?("301 Moved Permanently")
+					response.status = RESPONSES[301]
+					response.addHeader("Location", /#{LOCSTR}/.match(body)[0].tr("\"",""))
+					response.addHeader("Content-Type", ctype)
+					response.addHeader("Content-Length", clen)
+					response.body = body
+					return response
+				end
+				
 			end
 			response.addHeader("Last-Modified", file.mtime.hamNow)
 			response.addHeader("ETag", "\"" + file.gen_etag + "\"")

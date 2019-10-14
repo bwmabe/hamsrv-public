@@ -1,11 +1,19 @@
-def genDirListing(fname, webroot)
+require_relative 'responses'
+
+def genDirListing(fname, webroot, host)
 	list = Dir.entries(fname)
 	
 	fname = fname.split(webroot[0])[-1]
+	
+	# Handle 301 REDIRECTS here
+	if fname[-1] != ("/")
+		return REDIRECT(301, host, fname)
+	end
+	
 	files = list.select{|f| !File.directory? "./" + webroot[0] + fname + f}
 	dirs =  list.select{|f| File.directory? "./" + webroot[0] + fname + f}
 
-
+	# Doesn't actually delete the dirs from the filesystem, just this list
 	dirs.delete(".")
 	dirs.delete("..")
 	#return 501 error page

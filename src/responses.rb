@@ -47,6 +47,13 @@ def ERROR_PAGE(err)
 	return page
 end
 
+def REDIRECT(err, host, fname)
+	page = "<!DOCTYPE HTML>\n<html><head>\n<title>301 Moved Permanently</title>\n</head><body>\n<h1>Moved Permanently</h1>\n<p>The document has moved <a href=\"http://$HOST$FULLFNAME/\">here</a>.</p>\n</body></html>\n"
+	page.sub!("$HOST",host)
+	page.sub!("$FULLFNAME",fname)
+	return page
+end
+
 if __FILE__ == $0
 	File.open("test.html", "w").write(ERROR_PAGE(76897667))
 end

@@ -45,12 +45,10 @@ def handleConnection(client,config)
 		# Concatenate the message
 		# message.each{|i| request += i}
 		# message.join
-		loop do
-			# If the message is not empty; process the request form the client
-			if message.last == "\n" || message.last == "\r\n" || message.last == ""
-				request = message.join
-				message = []
-			end
+		# If the message is not empty; process the request form the client
+		if message.last == "\n" || message.last == "\r\n" || message.last == ""
+			request = message.join
+			message = []
 			unless request.empty?
 				# lastRequest = Time.now
 				# request, response, client ip, config file
@@ -86,17 +84,12 @@ def handleConnection(client,config)
 			if ((Time.now.to_i - lastRequest.to_i) >= config["timeout"].to_i) && timeout
 				response = Response.new
 				response.status = RESPONSES[408]
-				#response.body = ERROR_PAGE(408)
+				response.addHeader("Connection", "close")
 				client.write response.print
-				puts response.print
-				puts Time.now.to_i - lastRequest.to_i
 				close = true
-				client.close 
-				timeout = false
 			end
 		end
 	end
 	client.close
-	timeout = false
 	puts "disconnected from #{ip}:#{config["port"]}"
 end
