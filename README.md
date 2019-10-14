@@ -8,12 +8,10 @@ TODO:
  * ~~Finish empty page dir listing~~
  * ~~Test error pages~~
    * ~~Add function to supply them on error~~
- * Respect keep-alive and close
-   * **TIMEOUTS**
+ * ~~Respect keep-alive and close~~
+   * ~~**TIMEOUTS**~~
    * ~~Connection close~~
      * ~~close sockets~~
  * ~~Finish web-root~~
  * ~~Supply E-Tag and modified on HEAD~~
- * Re-read tests to find more items
-   * ~~Quote E-Tags~~
  * ~~create date comparison function~~
