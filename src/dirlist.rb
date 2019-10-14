@@ -10,6 +10,13 @@ def genDirListing(fname, webroot, host)
 		return REDIRECT(301, host, fname)
 	end
 	
+	begin
+		indexhtml = File.open("./" + webroot[0] + fname + "index.html","r").read
+		return indexhtml
+	rescue
+		# Fall through to the rest of the function
+	end
+	
 	files = list.select{|f| !File.directory? "./" + webroot[0] + fname + f}
 	dirs =  list.select{|f| File.directory? "./" + webroot[0] + fname + f}
 
