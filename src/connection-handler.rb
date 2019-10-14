@@ -14,41 +14,40 @@ def isBlank?( *x )
 	end
 end
 
-def handleConnection(client,config)
+def handleConnection(socket,config)
+	Thread.start(socket.accept) do |client|
+		connection(client,config)
+	end
+end
+
+def connection(client, config)
 	ip = client.peeraddr[-1]
 	puts "connected to #{ip}:#{config["port"]}"
 	
 	#message = ''
-	close = false
+	rcv = false
 	timeout = true
 	lastRequest = Time.now
-	
-	while !close
-		message = []
-		#Thread.new {while true; puts Time.now}
-		response = Response.new
-		rcv = 'a'
-		request = ''
+	request = ''
+	lines = [] 
+	response = Response.new
 
-		# recieve the message from the client; wait until newline or blank
-		Thread.start(client) do |c|
-			begin
-				c.each_line do |l|
-					message.append l
-					lastRequest = Time.now
-				end
-			rescue
-				#supress error on disconnected
+	Thread.start(client) do |c|
+		c.each_line do |l|
+			lines.append l
+			if lines.last == "\n" || lines.last() == "\r\n"
+				request = lines.join
+				lines = []
+				rcv = true
 			end
+			lastRequest = Time.now
 		end
-
-		# Concatenate the message
-		# message.each{|i| request += i}
-		# message.join
+	end
+	loop do
 		# If the message is not empty; process the request form the client
-		if message.last == "\n" || message.last == "\r\n" || message.last == ""
-			request = message.join
-			message = []
+		
+		if rcv
+			rcv = false
 			unless request.empty?
 				# lastRequest = Time.now
 				# request, response, client ip, config file
@@ -60,36 +59,31 @@ def handleConnection(client,config)
 					evalReq(req, response, ip, config)
 				end
 				
-				timeout = true
 				# Send the response
 				begin
 					if req.headers.key?("Connection")
 						if req.headers["Connection"].include? "close"
 							response.addHeader("Connection", "close")
+							request = ''
 							client.write response.print
 							client.close
-							close = true
-							timeout = false
-						elsif req.headers["Connection"].include? "keep-alive"
-							timeout = true
 						end
+					else
+						response.addHeader("Connection", "keep-alive")
 					end
 				rescue
-					timeout = true
 				end
 				client.write response.print
 				request = ''
 			end
-			
-			if ((Time.now.to_i - lastRequest.to_i) >= config["timeout"].to_i) && timeout
-				response = Response.new
-				response.status = RESPONSES[408]
-				response.addHeader("Connection", "close")
-				client.write response.print
-				close = true
-			end
+		end
+
+		if ((Time.now.to_i - lastRequest.to_i) >= config["timeout"].to_i)
+			response = Response.new
+			response.status = RESPONSES[408]
+			response.addHeader("Connection", "close")
+			client.write response.print
+			client.close
 		end
 	end
-	client.close
-	puts "disconnected from #{ip}:#{config["port"]}"
 end

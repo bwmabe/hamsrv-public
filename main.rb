@@ -36,6 +36,6 @@ puts "Listening on #{host}:#{port} ..."
 
 loop do
 	Thread.start(socket.accept) do |client|
-		handleConnection(client,config)
+		connection(client,config)
 	end
 end
