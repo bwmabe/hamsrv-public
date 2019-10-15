@@ -7,6 +7,7 @@ require_relative "src/time-date"
 require_relative "src/config-loader"
 require_relative "src/req-res"
 require_relative "src/eval-request"
+require_relative "src/connection-handler"
 
 #Config hierarchy from last to first is
 #  args > file > hardcoded
@@ -19,6 +20,7 @@ host = config['host']
 port = config['port']
 #puts port
 allowed_methods = config["allowed-methods"]
+#puts config["timeout"]
 
 #config["allowed-methods"].each { |i| puts i }
 
@@ -34,30 +36,6 @@ puts "Listening on #{host}:#{port} ..."
 
 loop do
 	Thread.start(socket.accept) do |client|
-		puts "connected to #{client.peeraddr[-1]}:#{port}"
-		
-		message = ''
-		closed = false
-		#client = socket.accept
-		while !closed do
-			message = []
-			response = Response.new
-			rcv = 'a'
-			req = ''
-			
-			while( (rcv = client.gets()) && rcv != "\n"  && rcv != "\r\n" && rcv != '')
-				message << rcv
-			end			
-			message.each{ |i| req += i}
-			unless req.empty?
-				evalReq(Request.new(req),response,client.peeraddr[-1],config)
-				client.write response.print
-				puts "Connection to #{client.peeraddr[-1]}:#{port} closed by host"
-				client.close
-				closed = true
-			end	
-		end
-
-		#puts "disconnected from #{client}"		
+		connection(client,config)
 	end
 end
