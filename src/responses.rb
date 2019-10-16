@@ -49,8 +49,8 @@ end
 
 def REDIRECT(err, host, fname)
 	page = "<!DOCTYPE HTML>\n<html><head>\n<title>301 Moved Permanently</title>\n</head><body>\n<h1>Moved Permanently</h1>\n<p>The document has moved <a href=\"http://$HOST$FULLFNAME/\">here</a>.</p>\n</body></html>\n"
-	page.sub!("$HOST",host)
-	page.sub!("$FULLFNAME",fname)
+	page.sub!("$HOST",host.lstrip.rstrip)
+	page.sub!("$FULLFNAME",fname.lstrip.rstrip)
 	return page
 end
 
