@@ -3,6 +3,7 @@ FROM ruby:alpine
 COPY main.rb /app/
 COPY src/* /app/src/
 COPY config.yml /app/
+COPY *.conf /app/
 
 ADD sample/cs531-test-files.tar.gz /app/web-root
 

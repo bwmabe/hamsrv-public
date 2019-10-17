@@ -7,6 +7,7 @@ require_relative "logger"
 require_relative "time-date"
 require_relative "etag"
 require_relative "dirlist"
+require_relative "redirects"
 
 LOCSTR = "\"http://.*\""
 
@@ -60,6 +61,13 @@ def evalReq(request, response, ip, config)
 	end
 		
 	# check if file found
+	config["redirects"].each{|i|
+		if !/#{i["from"]}/.match(request.uri).nil?
+			temp_response = computeRedirect(request.uri, config)
+			puts temp_response.print
+			return temp_response if !temp_response.nil?
+		end
+	}
 	begin
 		if request.uri == "/.well-known/access.log" && request.method != "TRACE"
 			file = File.new( config['log-file'], 'r')
@@ -253,7 +261,7 @@ if __FILE__ == $0
 	puts "Testing eval-request.rb..."
 	conf = load_config("config.yml")
 	req1 = Request.new("GT http://example.com HTTP/1.1123")
-	req2 = Request.new("GET http://foo.bar:6969/test.png HTTP/1.1")
+	req2 = Request.new("GET http://foo.bar/asdf/mercury/test.png HTTP/1.1")
 	r3 = Request.new("HEAD /test.txt HTTP/1.0")
 	r4 = Request.new("HEAD /a1-test/2/index.html HTTP/1.1\r\nHost: cs531-bmabe\r\nConnection: close")
 	r5 = Request.new("GET /a2-test/ HTTP/1.1\r\nHost: cs531-bmabe", conf["web-root"])
@@ -262,12 +270,11 @@ if __FILE__ == $0
 	ip = "69.69.69.69"
 
 	#puts evalReq(req1, res, ip, conf).print
-	req2 = r5
 	puts "------"
-	puts r5.print()
+	puts req2.print()
 	puts "------"
 	res = Response.new
-	puts evalReq(r5, res, ip, conf).print
+	puts evalReq(req2, res, ip, conf).print
 
 #	res=Response.new
 #	puts "====-=-=-=-=-=---=---==="

@@ -8,11 +8,27 @@ def load_config(fname)
 		#Handles non-uppercase method names in config file
 		config["allowed-methods"].map!(&:upcase) if config.key?("allowed-methods")
 		config["extant-methods"].map!(&:upcase) if config.key?("extant-methods")
+		loadRedirects(config)
 
 		return config
 	rescue
 		abort "config file \'#{fname}\' doesn't exist"
 	end
+end
+
+def loadRedirects(config)
+	raw = File.open(config["redirect-file"],"r").read.split("\n").map{|i| i.split}
+
+	config.store("redirects",[])
+	
+	raw.each{|i|
+		#puts i
+		h = {}
+		h["status"] = i[0].to_i
+		h["from"] = i[1]
+		h["to"] = i[2]
+		config["redirects"].push h
+	}
 end
 
 # Ghetto unit test

@@ -1,20 +1,15 @@
+require_relative 'config-loader.rb'
+require_relative 'req-res.rb'
 
-def computeRedirect(uri, redirect_file)
-	redirs = []
+def computeRedirect(uri, config)
+	redirs = config["redirects"]
 	rep = "$1"
 	new_uri = nil
 	matches = nil
+	res = Response.new
 
-	raw = File.open(redirect_file,"r").read.split("\n").map{|i| i.split}
+	# raw = File.open(redirect_file,"r").read.split("\n").map{|i| i.split}
 	
-	raw.each{|i| 
-		h = {}
-		h["status"] = i[0].to_i; 
-		h["from"] = i[1]; 
-		h["to"] = i[2];
-		redirs.push h
-	}
-
 	redirs.each{|i|
 		matches = /#{i["from"]}/.match uri
 		if !matches.nil?
@@ -24,6 +19,10 @@ def computeRedirect(uri, redirect_file)
 				new_uri.gsub!(rep, m.pop)
 				rep.succ!
 			end
+			res.status = i["status"].to_s
+			res.status += " Found" if res.status.include?("302")
+			res.status += " Moved Permanently" if res.status.include?("301")
+			res.addHeader("Location","http://" + config["host"] + "/" + new_uri)
 		end
 	}
 	
@@ -31,9 +30,13 @@ def computeRedirect(uri, redirect_file)
 
 	# Initialize a response and return that otherwise
 
-	return new_uri
+	return res
 end
 
 if __FILE__ == $0
-	puts computeRedirect("a/mercury/b", "redirects.conf")
+	cfg = load_config("config.yml")
+	
+	#puts cfg["redirects"]
+
+	puts computeRedirect("a/mercury/b", cfg).print
 end
