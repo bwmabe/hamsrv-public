@@ -19,10 +19,10 @@ def computeRedirect(uri, config)
 				new_uri.gsub!(rep, m.pop)
 				rep.succ!
 			end
-			res.status = i["status"].to_s
-			res.status += " Found" if res.status.include?("302")
-			res.status += " Moved Permanently" if res.status.include?("301")
-			res.addHeader("Location","http://" + config["host"] + "/" + new_uri)
+			ret = {}
+			ret["status"] = i["status"]
+			ret["uri"] = new_uri
+			return ret
 		end
 	}
 	
@@ -38,5 +38,6 @@ if __FILE__ == $0
 	
 	#puts cfg["redirects"]
 
-	puts computeRedirect("a/mercury/b", cfg).print
+	a =computeRedirect("a/mercury/b", cfg)
+	puts a["uri"] + " " + a["status"].to_s
 end

@@ -48,7 +48,8 @@ def ERROR_PAGE(err)
 end
 
 def REDIRECT(err, host, fname)
-	page = "<!DOCTYPE HTML>\n<html><head>\n<title>301 Moved Permanently</title>\n</head><body>\n<h1>Moved Permanently</h1>\n<p>The document has moved <a href=\"http://$HOST$FULLFNAME/\">here</a>.</p>\n</body></html>\n"
+	page = "<!DOCTYPE HTML>\n<html><head>\n<title>$STATUS</title>\n</head><body>\n<h1>Moved Permanently</h1>\n<p>The document has moved <a href=\"http://$HOST$FULLFNAME/\">here</a>.</p>\n</body></html>\n"
+	page.sub!("$STATUS",RESPONSES[err])
 	page.sub!("$HOST",host.lstrip.rstrip)
 	page.sub!("$FULLFNAME",fname.lstrip.rstrip)
 	return page
@@ -56,4 +57,5 @@ end
 
 if __FILE__ == $0
 	File.open("test.html", "w").write(ERROR_PAGE(76897667))
+	puts REDIRECT(302, "myneck", "main.rb")
 end

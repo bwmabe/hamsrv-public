@@ -64,8 +64,10 @@ def evalReq(request, response, ip, config)
 	config["redirects"].each{|i|
 		if !/#{i["from"]}/.match(request.uri).nil?
 			temp_response = computeRedirect(request.uri, config)
-			puts temp_response.print
-			return temp_response if !temp_response.nil?
+			body = REDIRECT(temp_response["status"],request.host,temp_response["uri"].remEscapes)
+			response.status = RESPONSES[temp_response["status"]]
+			response.addHeader("Location", /#{LOCSTR}/.match(body)[0].tr("\"","").delete_suffix("/"))
+			return response
 		end
 	}
 	begin
