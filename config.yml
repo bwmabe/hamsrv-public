@@ -5,4 +5,5 @@ extant-methods: ["get", "head", "options", "trace", "post", "put", "delete", "co
 log-file: "access.log"
 web-root: "web-root"
 default-page: "index.html"
+redirect-file: "redirects.conf"
 timeout: 5
