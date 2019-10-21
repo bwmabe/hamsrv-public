@@ -33,14 +33,17 @@ def connection(client, config)
 	response = Response.new
 
 	Thread.start(client) do |c|
-		c.each_line do |l|
-			lines.append l
-			if lines.last == "\n" || lines.last() == "\r\n"
-				request = lines.join
-				lines = []
-				rcv = true
+		begin
+			c.each_line do |l|
+				lines.append l
+				if lines.last == "\n" || lines.last() == "\r\n"
+					request = lines.join
+					lines = []
+					rcv = true
+				end
+				lastRequest = Time.now
 			end
-			lastRequest = Time.now
+		rescue IOError
 		end
 	end
 	loop do
@@ -59,8 +62,9 @@ def connection(client, config)
 					evalReq(req, response, ip, config)
 				end
 				
-				# Send the response
+
 				begin
+					# Send the response
 					if req.headers.key?("Connection")
 						if req.headers["Connection"].include? "close"
 							response.addHeader("Connection", "close")
@@ -71,10 +75,12 @@ def connection(client, config)
 					else
 						response.addHeader("Connection", "keep-alive")
 					end
-				rescue
+					client.write response.print
+					request = ''
+				rescue IOError
+					puts "Client disconnected before message could be sent"
+					break
 				end
-				client.write response.print
-				request = ''
 			end
 		end
 
@@ -82,8 +88,13 @@ def connection(client, config)
 			response = Response.new
 			response.status = RESPONSES[408]
 			response.addHeader("Connection", "close")
-			client.write response.print
-			client.close
+			begin
+				client.write response.print
+				client.close
+			rescue IOError
+				puts "Client disconnect before timeout"
+				break
+			end
 		end
 	end
 end

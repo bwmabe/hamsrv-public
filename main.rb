@@ -33,9 +33,11 @@ response.status = '200 OK' #status is hard coded to 200 for testing;
 
 socket = TCPServer.new(host,port)
 puts "Listening on #{host}:#{port} ..."
-
-loop do
-	Thread.start(socket.accept) do |client|
-		connection(client,config)
+begin
+	loop do
+		Thread.start(socket.accept) do |client|
+			connection(client,config)
+		end
 	end
+rescue Interrupt
 end
