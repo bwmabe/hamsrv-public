@@ -29,27 +29,39 @@ def connection(client, config)
 	timeout = true
 	lastRequest = Time.now
 	request = ''
-	lines = [] 
+	requests = Queue.new
+	msg = []
+	c = nil
+	line = ''
 	response = Response.new
 
-	Thread.start(client) do |c|
-		begin
-			c.each_line do |l|
-				lines.append l
-				if lines.last == "\n" || lines.last() == "\r\n"
-					request = lines.join
-					lines = []
-					rcv = true
-				end
-				lastRequest = Time.now
-			end
-		rescue IOError
-		end
-	end
 	loop do
 		# If the message is not empty; process the request form the client
+		begin
+			c = client.read_nonblock(1)
+		rescue IO::EAGAINWaitReadable
+			# This type of error should be ignored
+		rescue IOError
+			break
+		end
 		
-		if rcv
+		if !c.nil?
+			line +=  c
+			c = nil
+		end
+
+		if line[-1] == "\n"
+			msg.append(line)
+			if line == "\r\n" or line == "\n"
+				requests << msg.join
+				msg = []
+			end
+			line = ''
+			lastRequest = Time.now
+		end
+
+		if !requests.empty?
+			request = requests.pop
 			rcv = false
 			unless request.empty?
 				# lastRequest = Time.now
@@ -77,12 +89,15 @@ def connection(client, config)
 					end
 					client.write response.print
 					request = ''
+				rescue NoMethodError
+					client.write response.print
 				rescue IOError
-					puts "Client disconnected before message could be sent"
+					#puts "Client disconnected before message could be sent"
 					break
 				end
 			end
 		end
+
 
 		if ((Time.now.to_i - lastRequest.to_i) >= config["timeout"].to_i)
 			response = Response.new
