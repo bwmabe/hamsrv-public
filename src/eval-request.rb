@@ -32,6 +32,7 @@ def evalReq(request, response, ip, config)
 		puts request.uri if debug
 		response.status = RESPONSES[400]
 		response.body = ERROR_PAGE(400)
+		response.addHeader("Content-Type","message/http")
 		#response.body = request.debugPrint
 		logger.log(ip, request.directive, 400, 0)
 		return response
@@ -40,6 +41,7 @@ def evalReq(request, response, ip, config)
 	if request.version > 1.1
 		response.status = RESPONSES[505]
 		response.body = ERROR_PAGE(505)
+		response.addHeader("Content-Type","message/http")	
 		logger.log(ip, request.directive, 505, 0)
 		return response
 	end
@@ -47,6 +49,7 @@ def evalReq(request, response, ip, config)
 	if !config["allowed-methods"].include?(request.method)
 		response.status = RESPONSES[501]
 		response.body = ERROR_PAGE(501)
+		response.addHeader("Content-Type","message/http")	
 		logger.log(ip, request.directive, 501, 0)
 		return response
 	end
@@ -56,6 +59,7 @@ def evalReq(request, response, ip, config)
 		puts "no host" if debug
 		response.status = RESPONSES[400]
 		response.body = ERROR_PAGE(400)
+		response.addHeader("Content-Type","message/http")	
 		logger.log(ip, request.directive, 400, 0)
 		return response
 	end
@@ -67,6 +71,7 @@ def evalReq(request, response, ip, config)
 			body = REDIRECT(temp_response["status"],request.host,temp_response["uri"].remEscapes)
 			response.status = RESPONSES[temp_response["status"]]
 			response.addHeader("Location", /#{LOCSTR}/.match(body)[0].tr("\"","").delete_suffix("/"))
+			response.addHeader("Content-Type","message/http")	
 			return response
 		end
 	}
@@ -98,6 +103,7 @@ def evalReq(request, response, ip, config)
 					response.addHeader("Content-Length", clen)
 					response.body = body
 					return response
+		response.addHeader("Content-Type","message/http")	
 				end
 				
 			end
@@ -169,7 +175,7 @@ def evalReq(request, response, ip, config)
 					response.body = ERROR_PAGE(304)
 					return response
 				else
-					repsonse.status = RESPONSES[200]
+					response.status = RESPONSES[200]
 					response.body = body
 					logger.log(ip, request.directive, 200, file.size.to_s)
 					return response
@@ -231,7 +237,7 @@ def evalReq(request, response, ip, config)
 					logger.log(ip, request.directive, 304, 0)
 					return response
 				else
-					repsonse.status = RESPONSES[200]
+					response.status = RESPONSES[200]
 					#response.body = body
 					logger.log(ip, request.directive, 200, file.size.to_s)
 					return response
@@ -294,5 +300,5 @@ if __FILE__ == $0
 #	puts "--------"
 #	puts r5.print
 #	puts "--------[][][]["
-#	puts evalReq(r5,res,ip,conf).print
+#))))	puts evalReq(r4,res,ip,conf).print
 end
