@@ -47,68 +47,81 @@ def respondWithFile(logger, ip, file, req , res)
 end
 
 def evalReq(request, response, ip, config)
-	if __FILE__ == $0
-		debug = true
-		#config["allowed-methods"].each { |i| puts i }
-	end
+  if __FILE__ == $0
+    debug = true
+    #config["allowed-methods"].each { |i| puts i }
+  end
 
-        # Boolean used to differentiate between HEAD and GET
-        sendBody = true
+  # Boolean used to differentiate between HEAD and GET
+  sendBody = true
 
-        logger = Logger.new(config)
+  logger = Logger.new(config)
 
-        # Bad Request checks
-        if isBlank?(request.uri)
-            response = genError(response, 400)
-            return logAndRespond(logger,ip,request,400,0,response)
-        elsif !request.headers.key?("Host") and request.host.empty?
-            response = genError(response, 400)
-            return logAndRespond(logger,ip,request,400,0,response)
-        end
+  # Bad Request checks
+  if isBlank?(request.uri)
+    response = genError(response, 400)
+    return logAndRespond(logger,ip,request,400,0,response)
+  elsif !request.headers.key?("Host") and request.host.empty?
+    response = genError(response, 400)
+    return logAndRespond(logger,ip,request,400,0,response)
+  end
 
-        # Check if method allowed
-        if !config["allowed-methods"].include?(request.method)
-            response = genError(response, 501)
-            return logAndRespond(logger,ip,request,501,0,response)
-        end
+  # Check if method allowed
+  if !config["allowed-methods"].include?(request.method)
+    response = genError(response, 501)
+    return logAndRespond(logger,ip,request,501,0,response)
+  end
 
-        # Check if client version supported
-        if request.version.to_f > 1.1
-            response = genError(response, 505)
-            return logAndRespond(logger,ip,request,505,0,response)
-        end
+  # Check if client version supported
+  if request.version.to_f > 1.1
+    response = genError(response, 505)
+    return logAndRespond(logger,ip,request,505,0,response)
+  end
 
-        # Do things based on method
-        # GET     - Get the file; set a bool to add in the body
-        # HEAD    - get the file, clear body
-        # OPTIONS - allowed methods on that file
-        # TRACE   - do trace things
+  # Do things based on method
+  # GET     - Get the file; set a bool to add in the body
+  # HEAD    - get the file, clear body
+  # OPTIONS - allowed methods on that file
+  # TRACE   - do trace things
 
-        case request.method
-        when 'GET'
-          sendBody = true
-        when 'HEAD'
-          sendBody = false
-        when 'OPTIONS'
-          reponse.addHeader("Allow", config["allowed-methods"].join(", ") )
-          return logAndRespond(logger,ip,request,200,0,response)
-        when 'TRACE'
-          response.addHeader("Content-Type","message/http")
-          response.status = RESPONSES[200]
-          response.body = request.str
-          response.addHeader("Content-Length",response.body.length.to_s)
-          return logAndRespond(logger,ip,request,200,response.body.length.to_s,response)
-        else 
-          # Repeat of Method not allowed as a failsafe
-          return logAndRespond(logger, ip, request, 501, genError(response, 501))
-        end
+  case request.method
+    when 'GET'
+      sendBody = true
+    when 'HEAD'
+      sendBody = false
+    when 'OPTIONS'
+      reponse.addHeader("Allow", config["allowed-methods"].join(", ") )
+      return logAndRespond(logger,ip,request,200,0,response)
+    when 'TRACE'
+      response.addHeader("Content-Type","message/http")
+      response.status = RESPONSES[200]
+      response.body = request.str
+      response.addHeader("Content-Length",response.body.length.to_s)
+      return logAndRespond(logger,ip,request,200,response.body.length.to_s,response)
+    else 
+    # Repeat of Method not allowed as a failsafe
+    return logAndRespond(logger, ip, request, 501, genError(response, 501))
+  end
 
 
-        # File Checks
-        # - virtual URIs and redirecs
-        # - Exists
-        # - - content negotiation stuff
-        # - modified/etag/accept
+  # File Checks
+  # - virtual URIs and redirecs
+  # - Exists
+  # - - content negotiation stuff
+  # - modified/etag/accept
+
+  # Handle the only virtual URI
+  if request.uri == "/.well-known/access.log"
+    file = File.new(config["log-file"],"r")
+    log = file.read
+    response.body = log if sendBody
+    response.status = RESPONSES[200]
+    response.addHeader("Content-Type", "text/plain")
+    response.addHeader("Content-Length", log.length)
+    repsonse.addHeader("ETag", file.gen_etag)
+    response.addHeader("Last-Modified", file.mtime.hamNow)
+    return logAndRespond(logger,ip, request, 200, response)
+  end
 
 
 	
@@ -133,21 +146,4 @@ if __FILE__ == $0
 	res = Response.new
 	puts evalReq(req2, res, ip, conf).print
 
-#	res=Response.new
-#	puts "====-=-=-=-=-=---=---==="
-#	puts r3.print
-#	puts "+_+_+_+_+_+_+_+_+_+_+_+_+_+_+"
-#	puts evalReq(r3,res,ip,conf).print
-
-#	res=Response.new
-#	puts "_)(_)*)(*)(*^(*&^)*&)*(&)(*)"
-#	puts r4.print 
-#	puts "-------"
-#	puts evalReq(r4,res,ip,conf).print
-
-#	res=Response.new
-#	puts "--------"
-#	puts r5.print
-#	puts "--------[][][]["
-#))))	puts evalReq(r4,res,ip,conf).print
 end
