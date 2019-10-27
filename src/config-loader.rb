@@ -11,7 +11,7 @@ def load_config(fname)
 		loadRedirects(config)
 
 		return config
-	rescue
+	rescue Errno::ENOENT
 		abort "config file \'#{fname}\' doesn't exist"
 	end
 end
