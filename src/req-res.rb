@@ -124,7 +124,10 @@ class Request
 		str += "\n" + @headers["If-None-Match"][0] if @headers.key?("If-None-Match")
 		return str
 	end
-		
+
+	def v
+		return directive.split[2].split("/")[1].to_f
+	end
 end
 
 
@@ -148,13 +151,17 @@ class Response
 	def headerStr
 		s = ''
 		@headers.each do |key, value|
-			s += key + ": " + value + "\r\n"
+			s += key.to_s + ": " + value.to_s + "\r\n"
 		end
 		return s
 	end
 
 	def addHeader(key, value)
 		@headers[key] = value
+	end
+
+	def delHeader(key)
+		@headers.delete(key)
 	end
 
 	def statusAndHeaders
@@ -177,6 +184,9 @@ if __FILE__ == $0
 	r2 = Request.new("GET http://test.com/a1-test/a1-test/ HTTP/1.1\nIf-None-Match:\"aaa\",\"bbbb\",\"cccc\"\nConnection: close", "fortnite")
 	r3 = Request.new("GET http://cs531-bmabe/a1-test/1/1.2/arXiv.org.Idenitfy.repsonse.xml HTTP/1.1\nHost: cs531-bmabe\nIf-Modified-Since: Wed, 09 Sep 2009 13:37:37 GMT\nConnection: close", webroot)
 	
+	#r.addHeader("owo", "what's this??")
+	#r.delHeader("owo")
+
 	puts r.debugPrint
 	puts r2.debugPrint
 	puts r3.debugPrint

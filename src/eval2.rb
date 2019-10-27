@@ -20,16 +20,14 @@ def isBlank?( *x )
 end
 
 def genError( res, err )
-  res = Response.new
-  res.status = RESPONSES[err]
+  res = Repsonse.new
+  res.stats = RESPONES[err]
   res.body = ERROR_PAGE(err)
   res.addHeader("Content-Type", "message/http")
   return res
 end
 
 def logAndRespond(logger, ip, req , err, fsize, res)
-	res.status = RESPONSES[err]
-	res.body = "" if req.directive.split[0] == "HEAD"
   logger.log(ip, req.directive, err, fsize)
   return res
 end
@@ -61,26 +59,21 @@ def evalReq(request, response, ip, config)
 
   # Bad Request checks
   if isBlank?(request.uri)
-    #response = genError(response, 400)
-    response.status = RESPONSES[400]
+    response = genError(response, 400)
     return logAndRespond(logger,ip,request,400,0,response)
-  elsif !request.headers.key?("Host")
-    #response = genError(response, 400)
-    #puts "a;lsdkjas;lkfj"
-    response.status = RESPONSES[400]
+  elsif !request.headers.key?("Host") and request.host.empty?
+    response = genError(response, 400)
     return logAndRespond(logger,ip,request,400,0,response)
   end
 
   # Check if method allowed
   if !config["allowed-methods"].include?(request.method)
-    response.status = RESPONSES[501]
     response = genError(response, 501)
     return logAndRespond(logger,ip,request,501,0,response)
   end
 
   # Check if client version supported
   if request.version.to_f > 1.1
-    response.status = RESPONSES[505]
     response = genError(response, 505)
     return logAndRespond(logger,ip,request,505,0,response)
   end
@@ -97,8 +90,7 @@ def evalReq(request, response, ip, config)
     when 'HEAD'
       sendBody = false
     when 'OPTIONS'
-      response.status = RESPONSES[200]
-      response.addHeader("Allow", config["allowed-methods"].join(", ") )
+      reponse.addHeader("Allow", config["allowed-methods"].join(", ") )
       return logAndRespond(logger,ip,request,200,0,response)
     when 'TRACE'
       response.addHeader("Content-Type","message/http")
@@ -110,6 +102,7 @@ def evalReq(request, response, ip, config)
     # Repeat of Method not allowed as a failsafe
     return logAndRespond(logger, ip, request, 501, 0, genError(response, 501))
   end
+
 
   # File Checks
   # - virtual URIs and redirecs
@@ -125,7 +118,7 @@ def evalReq(request, response, ip, config)
     response.status = RESPONSES[200]
     response.addHeader("Content-Type", "text/plain")
     response.addHeader("Content-Length", log.length)
-    response.addHeader("ETag", file.gen_etag)
+    repsonse.addHeader("ETag", file.gen_etag)
     response.addHeader("Last-Modified", file.mtime.hamNow)
     return logAndRespond(logger,ip, request, 200, file.size.to_i, response)
   end
@@ -137,7 +130,7 @@ def evalReq(request, response, ip, config)
 		  response.status = RESPONSES[temp_response["status"]]
 		  response.addHeader("Location", "http://" + /#{LOCSTR}/.match(body)[0].tr("\"","").delete_suffix("/").split("http://")[-1])
 		  response.addHeader("Content-Type", "message/http")
-		  return logAndRespond(logger,ip, request, temp_response["status"],  response.body.length, response)
+		  return logAndRespond(logger,ip, request, 301, response.body.length, response)
 	end
   }
 
@@ -161,7 +154,7 @@ def evalReq(request, response, ip, config)
 				clen = body.length.to_s
 				ctype = "text/html"
 				stat = 200
-				response.status = RESPONSES[200]
+				repsonse.status = RESPONSES[200]
 				
 				# Handle redirect to trailing slash
 				if body.include?("301 Moved Permanently")
@@ -233,16 +226,6 @@ def evalReq(request, response, ip, config)
 						return logAndRespond(logger, ip, request, 200, response.body.length, response)
 					end
 				end
-			elsif request.headers.key?("If-Match")
-				if request.headers["If-Match"].strip ==  "\"" + file.gen_etag + "\""
-					response.status = RESPONSES[200]
-					response.body = file.read
-					return logAndRespond(logger, ip, request, 200, file.size, response)
-				else
-					response.status = RESPONSES[412]
-					response.body = ERROR_PAGE(412)
-					return logAndRespond(logger, ip, request, 412, response.body.length, response)
-				end
 			end
 
 			# Do encodings 
@@ -257,11 +240,6 @@ def evalReq(request, response, ip, config)
 		response.body = ERROR_PAGE(404)
 		return logAndRespond(logger, ip, request, 404, response.body.length, response)
 	end
-
-	response = Response.new
-	response.status = RESPONSES[400]
-	response.body = ERROR_PAGE(400)
-	return logAndRespond(logger, ip, request, 400, response.body.length, response)
 	
 end
 
