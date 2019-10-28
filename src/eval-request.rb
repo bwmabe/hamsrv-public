@@ -30,13 +30,14 @@ end
 def logAndRespond(logger, ip, req , err, fsize, res)
 	res.status = RESPONSES[err]
 	res.body = "" if req.directive.split[0] == "HEAD"
-
-	res.addHeader("Content-Encoding", "gzip") if req.fname[-2..-1] == "gz"
-	res.addHeader("Content-Encoding", "compress") if req.fname[-1] == "Z"
+        if !req.fname.nil?
+	  res.addHeader("Content-Encoding", "gzip") if req.fname[-2..-1] == "gz"
+	  res.addHeader("Content-Encoding", "compress") if req.fname[-1] == "Z"
+        end
 	# Set transfer encoding to chunked if not overridden
 	res.addHeader("Transfer-Encoding", "chunked") if !res.headers.key?("Transfer-Encoding")
 
-	res.addHeader("Content-Language",getLang(req.fname)) if req.fname.include?("htm")
+        res.addHeader("Content-Language",getLang(req.fname)) if !req.fname.nil? && req.fname.include?("htm")
 
 	logger.log(ip, req.directive, err, fsize)
 	return res
@@ -316,10 +317,57 @@ def evalReq(request, response, ip, config)
 		end
 	rescue Errno::ENOENT
 		# Check for difference Langs and extensions before 404-ing		
-		#flist = Dir.entries(request.fullFname().remEscapes.split("/")[0...-1].join)
-		#fname = request.fullFname().remEscapes.split("/").last
-		#flist.keep_if{|i| i.include?(fname)}
-		#flist.each{|i|puts i}
+                path = request.fullFname().remEscapes.split("/")[0...-1].join("/")
+                
+                if request.fullFname().remEscapes[-1] == "/"
+                  response.status = RESPONSES[404]
+                  response.addHeader("Content-Type", "text/html")
+                  response.body = ERROR_PAGE(404)
+                  return logAndRespond(logger, ip, request, 404, response.body.length, response)
+                end
+                begin
+                  File.new(path, "r").read
+                rescue Errno::EISDIR 
+                rescue Errno::ENOENT
+                  response.status = RESPONSES[404]
+                  response.body = ERROR_PAGE(404)
+                  response.addHeader("Content-Type", "text/html")
+                  return logAndRespond(logger, ip, request, 404, response.body.length, response)
+                end
+
+                begin
+		  flist = Dir.entries(path)
+                rescue Errno::ENOENT
+                  response.status = RESPONSES[404]
+                  response.body = ERROR_PAGE(404)
+                  response.addHeader("Content-Type", "text/html")
+                  return logAndRespond(logger, ip, request, 404, response.body.length, response)
+                end
+
+		fname = request.fullFname().remEscapes.split("/").last
+		
+                flist.keep_if{|i| i.include?(fname)}
+                
+                json = "{\"$F\" 1 {type $M} {length $L}}"
+	        
+                alts = flist.map{|i|
+                  f = path + "/" + i
+                  m = getMIME(i)
+                  l = File.new(f, "r").size.to_s
+
+                  json.gsub("$F",i).gsub("$M",m).gsub("$L", l)
+                }
+                
+
+
+                if !request.headers.key?("Accept")
+                  response.status = RESPONSES[300]
+                  response.body = ERROR_PAGE(300)
+                  response.addHeader("Content-Type", "text/html")
+                  response.addHeader("Alternates", alts.join(", "))
+                  return logAndRespond(logger, ip, request, 300, response.body.length, response)
+                end
+
 		# 404 stuff
 		response.status = RESPONSES[404]
 		response.body = ERROR_PAGE(404)
