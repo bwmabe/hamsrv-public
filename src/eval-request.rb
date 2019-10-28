@@ -20,11 +20,11 @@ def isBlank?( *x )
 end
 
 def genError( res, err )
-  res = Response.new
-  res.status = RESPONSES[err]
-  res.body = ERROR_PAGE(err)
-  res.addHeader("Content-Type", "message/http")
-  return res
+	res = Response.new
+	res.status = RESPONSES[err]
+	res.body = ERROR_PAGE(err)
+	res.addHeader("Content-Type", "message/http")
+	return res
 end
 
 def logAndRespond(logger, ip, req , err, fsize, res)
@@ -43,111 +43,109 @@ def logAndRespond(logger, ip, req , err, fsize, res)
 end
 
 def respondWithFile(logger, ip, file, req , res)
-  
-  # Assumes file found and successful negotiation
+	# Assumes file found and successful negotiation
+	res.addHeader("Last-Modified",file.mtime.hamNow)
+	res.addHeader("ETag","\"" + file.gen_etag + "\"")
+	res.addHeader("Content-Type", getMIME(request.filename))
+	res.addHeader("Content-Length",file.size.to_s)
+	
+	logger.log(ip, req.directive, 200, file.size)
 
-  res.addHeader("Last-Modified",file.mtime.hamNow)
-  res.addHeader("ETag","\"" + file.gen_etag + "\"")
-  res.addHeader("Content-Type", getMIME(request.filename))
-  res.addHeader("Content-Length",file.size.to_s)
-  
-  logger.log(ip, req.directive, 200, file.size)
-
-  return res
+	return res
 end
 
 def evalReq(request, response, ip, config)
-  if __FILE__ == $0
-    debug = true
-    #config["allowed-methods"].each { |i| puts i }
-  end
-
-  # Boolean used to differentiate between HEAD and GET
-  sendBody = true
-
-  logger = Logger.new(config)
-
-  # Bad Request checks
-  if isBlank?(request.uri)
-    #response = genError(response, 400)
-    response.status = RESPONSES[400]
-    return logAndRespond(logger,ip,request,400,0,response)
-  elsif !request.headers.key?("Host")
-    #response = genError(response, 400)
-    #puts "a;lsdkjas;lkfj"
-    response.status = RESPONSES[400]
-    return logAndRespond(logger,ip,request,400,0,response)
-  end
-
-  # Check if method allowed
-  if !config["allowed-methods"].include?(request.method)
-    response.status = RESPONSES[501]
-    response = genError(response, 501)
-    return logAndRespond(logger,ip,request,501,0,response)
-  end
-
-  # Check if client version supported
-  if request.version.to_f > 1.1
-    response.status = RESPONSES[505]
-    response = genError(response, 505)
-    return logAndRespond(logger,ip,request,505,0,response)
-  end
-
-  # Do things based on method
-  # GET     - Get the file; set a bool to add in the body
-  # HEAD    - get the file, clear body
-  # OPTIONS - allowed methods on that file
-  # TRACE   - do trace things
-
-  case request.method
-    when 'GET'
-      sendBody = true
-    when 'HEAD'
-      sendBody = false
-    when 'OPTIONS'
-      response.status = RESPONSES[200]
-      response.addHeader("Allow", config["allowed-methods"].join(", ") )
-      return logAndRespond(logger,ip,request,200,0,response)
-    when 'TRACE'
-      response.addHeader("Content-Type","message/http")
-      response.status = RESPONSES[200]
-      response.body = request.str
-      response.addHeader("Content-Length",response.body.length.to_s)
-      return logAndRespond(logger,ip,request,200,response.body.length.to_s,response)
-    else 
-    # Repeat of Method not allowed as a failsafe
-    return logAndRespond(logger, ip, request, 501, 0, genError(response, 501))
-  end
-
-  # File Checks
-  # - virtual URIs and redirecs
-  # - Exists
-  # - - content negotiation stuff
-  # - modified/etag/accept
-
-  # Handle the only virtual URI
-  if request.uri == "/.well-known/access.log"
-    file = File.new(config["log-file"],"r")
-    log = file.read
-    response.body = log if sendBody
-    response.status = RESPONSES[200]
-    response.addHeader("Content-Type", "text/plain")
-    response.addHeader("Content-Length", log.length)
-    response.addHeader("ETag", file.gen_etag)
-    response.addHeader("Last-Modified", file.mtime.hamNow)
-    return logAndRespond(logger,ip, request, 200, file.size.to_i, response)
-  end
-
-  config["redirects"].each{|i|
-	if !/#{i["from"]}/.match(request.uri).nil?
-		  temp_response = computeRedirect(request.uri, config)
-		  body = REDIRECT(temp_response["status"], request.host, temp_response["uri"].remEscapes)
-		  response.status = RESPONSES[temp_response["status"]]
-		  response.addHeader("Location", "http://" + /#{LOCSTR}/.match(body)[0].tr("\"","").delete_suffix("/").split("http://")[-1])
-		  response.addHeader("Content-Type", "message/http")
-		  return logAndRespond(logger,ip, request, temp_response["status"],  response.body.length, response)
+	if __FILE__ == $0
+		debug = true
+		#config["allowed-methods"].each { |i| puts i }
 	end
-  }
+
+	# Boolean used to differentiate between HEAD and GET
+	sendBody = true
+
+	logger = Logger.new(config)
+
+	# Bad Request checks
+	if isBlank?(request.uri)
+		#response = genError(response, 400)
+		response.status = RESPONSES[400]
+		return logAndRespond(logger,ip,request,400,0,response)
+	elsif !request.headers.key?("Host")
+		#response = genError(response, 400)
+		#puts "a;lsdkjas;lkfj"
+		response.status = RESPONSES[400]
+		return logAndRespond(logger,ip,request,400,0,response)
+	end
+
+	# Check if method allowed
+	if !config["allowed-methods"].include?(request.method)
+		response.status = RESPONSES[501]
+		response = genError(response, 501)
+		return logAndRespond(logger,ip,request,501,0,response)
+	end
+
+	# Check if client version supported
+	if request.version.to_f > 1.1
+		response.status = RESPONSES[505]
+		response = genError(response, 505)
+		return logAndRespond(logger,ip,request,505,0,response)
+	end
+
+	# Do things based on method
+	# GET		 - Get the file; set a bool to add in the body
+	# HEAD		- get the file, clear body
+	# OPTIONS - allowed methods on that file
+	# TRACE	 - do trace things
+
+	case request.method
+		when 'GET'
+			sendBody = true
+		when 'HEAD'
+			sendBody = false
+		when 'OPTIONS'
+			response.status = RESPONSES[200]
+			response.addHeader("Allow", config["allowed-methods"].join(", ") )
+			return logAndRespond(logger,ip,request,200,0,response)
+		when 'TRACE'
+			response.addHeader("Content-Type","message/http")
+			response.status = RESPONSES[200]
+			response.body = request.str
+			response.addHeader("Content-Length",response.body.length.to_s)
+			return logAndRespond(logger,ip,request,200,response.body.length.to_s,response)
+		else 
+		# Repeat of Method not allowed as a failsafe
+		return logAndRespond(logger, ip, request, 501, 0, genError(response, 501))
+	end
+
+	# File Checks
+	# - virtual URIs and redirecs
+	# - Exists
+	# - - content negotiation stuff
+	# - modified/etag/accept
+
+	# Handle the only virtual URI
+	if request.uri == "/.well-known/access.log"
+		file = File.new(config["log-file"],"r")
+		log = file.read
+		response.body = log if sendBody
+		response.status = RESPONSES[200]
+		response.addHeader("Content-Type", "text/plain")
+		response.addHeader("Content-Length", log.length)
+		response.addHeader("ETag", file.gen_etag)
+		response.addHeader("Last-Modified", file.mtime.hamNow)
+		return logAndRespond(logger,ip, request, 200, file.size.to_i, response)
+	end
+
+	config["redirects"].each{|i|
+	if !/#{i["from"]}/.match(request.uri).nil?
+			temp_response = computeRedirect(request.uri, config)
+			body = REDIRECT(temp_response["status"], request.host, temp_response["uri"].remEscapes)
+			response.status = RESPONSES[temp_response["status"]]
+			response.addHeader("Location", "http://" + /#{LOCSTR}/.match(body)[0].tr("\"","").delete_suffix("/").split("http://")[-1])
+			response.addHeader("Content-Type", "message/http")
+			return logAndRespond(logger,ip, request, temp_response["status"],	response.body.length, response)
+	end
+	}
 
 	begin
 		# Read in file here
@@ -243,7 +241,7 @@ def evalReq(request, response, ip, config)
 					end
 				end
 			elsif request.headers.key?("If-Match")
-				if request.headers["If-Match"].strip ==  "\"" + file.gen_etag + "\""
+				if request.headers["If-Match"].strip ==	"\"" + file.gen_etag + "\""
 					response.status = RESPONSES[200]
 					response.body = file.read
 					return logAndRespond(logger, ip, request, 200, file.size, response)
@@ -317,10 +315,11 @@ def evalReq(request, response, ip, config)
 
 		end
 	rescue Errno::ENOENT
-		# Check for difference Langs and extensions before 404-ing
-		
-
-
+		# Check for difference Langs and extensions before 404-ing		
+		#flist = Dir.entries(request.fullFname().remEscapes.split("/")[0...-1].join)
+		#fname = request.fullFname().remEscapes.split("/").last
+		#flist.keep_if{|i| i.include?(fname)}
+		#flist.each{|i|puts i}
 		# 404 stuff
 		response.status = RESPONSES[404]
 		response.body = ERROR_PAGE(404)
@@ -332,7 +331,6 @@ def evalReq(request, response, ip, config)
 	response.status = RESPONSES[400]
 	response.body = ERROR_PAGE(400)
 	return logAndRespond(logger, ip, request, 400, response.body.length, response)
-	
 end
 
 if __FILE__ == $0
