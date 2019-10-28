@@ -33,7 +33,7 @@ def getMIME(fname)
 	when "ppt", "pptx", "ppts"
 		return "application/vnd.ms-powerpoint"
 	when "jis"
-		return "text/html; charset=ios-2022-jp"
+		return "text/html; charset=iso-2022-jp"
 	when "koi8-r"
 		return "text/html; charset=koi8-r"
 	when "euc-kr"

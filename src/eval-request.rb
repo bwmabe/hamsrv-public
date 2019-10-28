@@ -360,7 +360,7 @@ def evalReq(request, response, ip, config)
                 
 
 
-                if !request.headers.key?("Accept")
+                if !request.headers.key?("Accept") and !alts.empty?
                   response.status = RESPONSES[300]
                   response.body = ERROR_PAGE(300)
                   response.addHeader("Content-Type", "text/html")
