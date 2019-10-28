@@ -258,23 +258,55 @@ def evalReq(request, response, ip, config)
 			# Do encodings
 			#
 			if request.headers.key?("Range")
-				if /[(bytes=)\ \d\-\,]*/.match(request.headers["Range"])[1].nil?
+				if /[(bytes=)\ \d\-\,]*/.match(request.headers["Range"])[0].nil?
 					# if range doesn't match regex; bad request
+					puts "BORKK"
 				else
 					# check that range is okay and process
-					ranges = request.headers.key?["Range"].split("=").last.split(",")
-
-					buffer = nil
-
+					ranges = request.headers["Range"].split("=").last.split(",")
+					fname = request.fullFname().remEscapes
+					file = File.new(fname)
+					buffer = ""
+					cr = "bytes "
 					ranges.each{|i|
-						if !/^-\d+$/.match(i).nil?
-							# Do onwards
-						elsif !/^\d+-\d+$/.match(i)/nil?
+						i.strip!
+						m1 = /^(\d+)-$/.match(i)
+						m2 = /^(\d+)-(\d+)/.match(i)
+						m3 = /^-(\d+)/.match(i)
+							
+						if !/^(\d+)-$/.match(i).nil?
+							puts fname
+							for i in (m1[1].to_i)..(file.size)
+								buffer.concat(IO.read(fname, 1, i).to_s)
+							end
+							#cr += ", " if !cr.empty?
+							cr.concat(m1[1].to_s + "-" + file.size.to_s)
+						elsif !/^(\d+)-(\d+)/.match(i).nil?
 							# do from x to y
-						elsif !/^\d+-$/.match(i).nil?
+							for i in (m2[1].to_i)..(m2[2].to_i)
+								buffer.concat(IO.read(fname, 1, i))
+							end
+							#cr += ", " if !cr.empty?
+							cr.concat(m2[1].to_s + "-" + m2[2].to_s)
+						elsif !/^-(\d+)/.match(i).nil?
 							# do last x bytes
+							x = file.size - m3[1].to_i
+							for i in x..(file.size)
+								buffer.concat(IO.read(fname, 1, i).to_s)
+							end
+							#cr += ", " if !cr.empty?
+							cr += x.to_s + "-" + file.size.to_s
 						end
 					}
+
+					cr += "/" + file.size.to_s
+
+					response.status = RESPONSES[206]
+					response.body = buffer if !request.directive.include?("HEAD")
+					response.addHeader("Content-Range", cr)
+					response.addHeader("Content-Length", buffer.length.to_s)
+					response.addHeader("Content-Type", getMIME(fname.split("/").last))
+					return logAndRespond(logger,ip,request,206,buffer.length, response)
 
 				end
 			end

@@ -2,6 +2,7 @@ RESPONSES =
 	{
 		
 		200 => "200 OK",
+		206 => "206 Partial Content",
 		301 => "301 Moved Permanently",
 		302 => "302 Found",
 		304 => "304 Not Modified",
