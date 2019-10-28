@@ -30,8 +30,16 @@ end
 def logAndRespond(logger, ip, req , err, fsize, res)
 	res.status = RESPONSES[err]
 	res.body = "" if req.directive.split[0] == "HEAD"
-  logger.log(ip, req.directive, err, fsize)
-  return res
+
+	res.addHeader("Content-Encoding", "gzip") if req.fname[-2..-1] == "gz"
+	res.addHeader("Content-Encoding", "compress") if req.fname[-1] == "Z"
+	# Set transfer encoding to chunked if not overridden
+	res.addHeader("Transfer-Encoding", "chunked") if !res.headers.key?("Transfer-Encoding")
+
+	res.addHeader("Content-Language",getLang(req.fname)) if req.fname.include?("htm")
+
+	logger.log(ip, req.directive, err, fsize)
+	return res
 end
 
 def respondWithFile(logger, ip, file, req , res)
@@ -206,6 +214,7 @@ def evalReq(request, response, ip, config)
 				else
 					response.status = RESPONSES[412]
 					response.body = ERROR_PAGE(412)
+					response.headers["Content-Type"] = "text/html"
 					return logAndRespond(logger, ip, request, 412, response.body.length, response)
 				end
 			elsif request.headers.key?("If-None-Match")
@@ -241,20 +250,49 @@ def evalReq(request, response, ip, config)
 				else
 					response.status = RESPONSES[412]
 					response.body = ERROR_PAGE(412)
+					response.headers["Content-Type"] = "text/html"
 					return logAndRespond(logger, ip, request, 412, response.body.length, response)
 				end
 			end
 
-			# Do encodings 
+			# Do encodings
+			#
+			if request.headers.key?("Range")
+				if /[(bytes=)\ \d\-\,]*/.match(request.headers["Range"])[1].nil?
+					# if range doesn't match regex; bad request
+				else
+					# check that range is okay and process
+					ranges = request.headers.key?["Range"].split("=").last.split(",")
+
+					buffer = nil
+
+					ranges.each{|i|
+						if !/^-\d+$/.match(i).nil?
+							# Do onwards
+						elsif !/^\d+-\d+$/.match(i)/nil?
+							# do from x to y
+						elsif !/^\d+-$/.match(i).nil?
+							# do last x bytes
+						end
+					}
+
+				end
+			end
+
 			response.status = RESPONSES[200]
 			response.body = file.read
 			return logAndRespond(logger, ip, request, 200, file.size, response)
 
 		end
 	rescue Errno::ENOENT
+		# Check for difference Langs and extensions before 404-ing
+		
+
+
 		# 404 stuff
 		response.status = RESPONSES[404]
 		response.body = ERROR_PAGE(404)
+		response.addHeader("Content-Type", "text/html")
 		return logAndRespond(logger, ip, request, 404, response.body.length, response)
 	end
 

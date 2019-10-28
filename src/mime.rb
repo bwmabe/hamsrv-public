@@ -16,7 +16,7 @@ def getMIME(fname)
 	case ext
 	when "txt", "log"
 		return "text/plain"
-	when "html", "htm"
+	when "html", "htm", "en", "es", "de"
 		return "text/html"
 	when "xml"
 		return "text/xml"
@@ -32,8 +32,47 @@ def getMIME(fname)
 		return "application/vnd.ms-word"
 	when "ppt", "pptx", "ppts"
 		return "application/vnd.ms-powerpoint"
+	when "jis"
+		return "text/html; charset=ios-2022-jp"
+	when "koi8-r"
+		return "text/html; charset=koi8-r"
+	when "euc-kr"
+		return "text/html; charset=euc-kr"
+	when "Z","gz","z"
+		return "text/html"
 	else
 		return "application/octet-stream"
+	end	
+end
+
+def getLang(fname)
+	e1 = fname.split('.').last
+	e2 = fname.split('.')[-2]
+
+	case e1
+	when "de"
+		return "de"
+	when "en"
+		return "en"
+	when "es"
+		return "es"
+	when "ja"
+		return "ja"
+	when "ko"
+		return "ko"
+	when "ru"
+		return "ru"
+	else
+		case e2
+		when "ko"
+			return "ko"
+		when "ru"
+			return "ru"
+		when "ja"
+			return "ja"
+		else
+			return "en"
+		end
 	end
 end
 
