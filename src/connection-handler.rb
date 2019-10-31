@@ -20,6 +20,13 @@ def handleConnection(socket,config)
 	end
 end
 
+def chunked?(response)
+  #return false if !response.headers.key?("Transfer-Encoding")
+  #return true  if response.headers["Transfer-Encoding"].include?("hunked")
+  #puts "BROKEN"
+  return false
+end
+
 def connection(client, config)
 	ip = client.peeraddr[-1]
 	puts "connected to #{ip}:#{config["port"]}"
