@@ -31,8 +31,8 @@ def logAndRespond(logger, ip, req , err, fsize, res)
 	res.status = RESPONSES[err]
 	res.body = "" if req.directive.split[0] == "HEAD"
 				if !req.fname.nil?
-                                  res.addHeader("Content-Encoding", "gzip") if req.fname[-2..-1] == "gz"
-		                  res.addHeader("Content-Encoding", "compress") if req.fname[-1] == "Z"
+				res.addHeader("Content-Encoding", "gzip") if req.fname[-2..-1] == "gz"
+				res.addHeader("Content-Encoding", "compress") if req.fname[-1] == "Z"
 				end
 	# Set transfer encoding to chunked if not overridden
 
@@ -69,20 +69,20 @@ def evalReq(request, response, ip, config)
 	if isBlank?(request.uri)
 		#response = genError(response, 400)
 		response.status = RESPONSES[400]
-                response.addHeader("Transfer-Encoding","chunked")
+		response.addHeader("Transfer-Encoding","chunked")
 		return logAndRespond(logger,ip,request,400,0,response)
 	elsif !request.headers.key?("Host")
 		#response = genError(response, 400)
 		#puts "a;lsdkjas;lkfj"
 		response.status = RESPONSES[400]
-                response.addHeader("Transfer-Encoding","chunked")
+		response.addHeader("Transfer-Encoding","chunked")
 		return logAndRespond(logger,ip,request,400,0,response)
 	end
 
 	# Check if method allowed
 	if !config["allowed-methods"].include?(request.method)
 		response.status = RESPONSES[501]
-                response.addHeader("Transfer-Encoding","chunked")
+		response.addHeader("Transfer-Encoding","chunked")
 		response = genError(response, 501)
 		return logAndRespond(logger,ip,request,501,0,response)
 	end
@@ -90,7 +90,7 @@ def evalReq(request, response, ip, config)
 	# Check if client version supported
 	if request.version.to_f > 1.1
 		response.status = RESPONSES[505]
-                response.addHeader("Transfer-Encoding","chunked")
+		response.addHeader("Transfer-Encoding","chunked")
 		response = genError(response, 505)
 		return logAndRespond(logger,ip,request,505,0,response)
 	end
@@ -142,18 +142,18 @@ def evalReq(request, response, ip, config)
 
 	config["redirects"].each{|i|
 	if !/#{i["from"]}/.match(request.uri).nil?
-			temp_response = computeRedirect(request.uri, config)
-			body = REDIRECT(temp_response["status"], request.host, temp_response["uri"].remEscapes)
-			response.status = RESPONSES[temp_response["status"]]
-                response.addHeader("Transfer-Encoding","chunked")
-			response.addHeader("Location", "http://" + /#{LOCSTR}/.match(body)[0].tr("\"","").delete_suffix("/").split("http://")[-1])
-			response.addHeader("Content-Type", "message/http")
-			return logAndRespond(logger,ip, request, temp_response["status"],	response.body.length, response)
+		temp_response = computeRedirect(request.uri, config)
+		body = REDIRECT(temp_response["status"], request.host, temp_response["uri"].remEscapes)
+		response.status = RESPONSES[temp_response["status"]]
+		response.addHeader("Transfer-Encoding","chunked")
+		response.addHeader("Location", "http://" +/#{LOCSTR}/.match(body)[0].tr("\"","").delete_suffix("/").split("http://")[-1])
+		response.addHeader("Content-Type", "message/http")
+		return logAndRespond(logger,ip, request, temp_response["status"], response.body.length, response)
 	end
 	}
 
 	begin
-		# Read in file here
+        	# Read in file here
 		begin
 			# Attempt to read the file
 			
@@ -177,7 +177,7 @@ def evalReq(request, response, ip, config)
 				# Handle redirect to trailing slash
 				if body.include?("301 Moved Permanently")
 					response.status = RESPONSES[301]
-                response.addHeader("Transfer-Encoding","chunked")
+					response.addHeader("Transfer-Encoding","chunked")
 					response.addHeader("Location", /#{LOCSTR}/.match(body)[0].tr("\"",""))
 					ctype = "message/http"
 					stat = 301
@@ -197,7 +197,7 @@ def evalReq(request, response, ip, config)
 			file = File.new(request.fullFname().remEscapes)
 			response.addHeader("Content-Type", getMIME(request.fname))
 			response.addHeader("Content-Length", file.size.to_s)
-			response.addHeader("ETag", "\"" + file.gen_etag + "\"")
+			response.addHeader("ETag", "\""	+ file.gen_etag	+ "\"")
 			response.addHeader("Last-Modified", file.mtime.hamNow)
 
 			if request.headers.key?("If-Modified-Since")
@@ -207,7 +207,7 @@ def evalReq(request, response, ip, config)
 					return logAndRespond(logger, ip, request, 200, file.size, response)
 				else
 					response.status = RESPONSES[304]
-                response.addHeader("Transfer-Encoding","chunked")
+					response.addHeader("Transfer-Encoding","chunked")
 					response.body = ERROR_PAGE(304)
 					return logAndRespond(logger, ip, request, 304, response.body.length, response)
 				end
@@ -218,7 +218,7 @@ def evalReq(request, response, ip, config)
 					return logAndRespond(logger, ip, request, 200, file.size, response)
 				else
 					response.status = RESPONSES[412]
-                response.addHeader("Transfer-Encoding","chunked")
+					response.addHeader("Transfer-Encoding","chunked")
 					response.body = ERROR_PAGE(412)
 					response.headers["Content-Type"] = "text/html"
 					return logAndRespond(logger, ip, request, 412, response.body.length, response)
@@ -228,7 +228,7 @@ def evalReq(request, response, ip, config)
 					for i in request.headers["If-None-Match"] do
 						if i.lstrip.rstrip == "\"" + file.gen_etag + "\""
 							response.status = RESPONSES[304]
-                response.addHeader("Transfer-Encoding","chunked")
+							response.addHeader("Transfer-Encoding","chunked")
 							response.body = ERROR_PAGE(304)
 							return logAndRespond(logger, ip, request, 304, response.body.length, response)
 						end
@@ -239,9 +239,9 @@ def evalReq(request, response, ip, config)
 					return logAndRespond(logger, ip, request, 200, response.body.length, response)
 
 				else
-					if request.headers["If-None-Match"] == "\"" + file.gen_etag + "\""
+					if request.headers["If-None-Match"] == "\"" +file.gen_etag + "\""
 						response.status = RESPONSES[304]
-                response.addHeader("Transfer-Encoding","chunked")
+						response.addHeader("Transfer-Encoding","chunked")
 						response.body = ERROR_PAGE(304)
 						return logAndRespond(logger, ip, request, 304, response.body.length, response)
 					else
@@ -257,7 +257,7 @@ def evalReq(request, response, ip, config)
 					return logAndRespond(logger, ip, request, 200, file.size, response)
 				else
 					response.status = RESPONSES[412]
-                response.addHeader("Transfer-Encoding","chunked")
+					response.addHeader("Transfer-Encoding","chunked")
 					response.body = ERROR_PAGE(412)
 					response.headers["Content-Type"] = "text/html"
 					return logAndRespond(logger, ip, request, 412, response.body.length, response)
@@ -288,14 +288,14 @@ def evalReq(request, response, ip, config)
 							for i in (m1[1].to_i)..(file.size)
 								buffer.concat(IO.read(fname, 1, i).to_s)
 							end
-							#cr += ", " if !cr.empty?
+							#cr	= ", " if !cr.empty?
 							cr.concat(m1[1].to_s + "-" + file.size.to_s)
 						elsif !/^(\d+)-(\d+)/.match(i).nil?
 							# do from x to y
 							for i in (m2[1].to_i)..(m2[2].to_i)
 								buffer.concat(IO.read(fname, 1, i))
 							end
-							#cr += ", " if !cr.empty?
+							#cr	= ", " if !cr.empty?
 							cr.concat(m2[1].to_s + "-" + m2[2].to_s)
 						elsif !/^-(\d+)/.match(i).nil?
 							# do last x bytes
@@ -303,12 +303,12 @@ def evalReq(request, response, ip, config)
 							for i in x..(file.size)
 								buffer.concat(IO.read(fname, 1, i).to_s)
 							end
-							#cr += ", " if !cr.empty?
+							#cr	= ", " if !cr.empty?
 							cr += x.to_s + "-" + file.size.to_s
 						end
 					}
 
-					cr += "/" + file.size.to_s
+					cr += "/" +file.size.to_s
 
 					response.status = RESPONSES[206]
 					response.body = buffer if !request.directive.include?("HEAD")
@@ -327,72 +327,69 @@ def evalReq(request, response, ip, config)
 		end
 	rescue Errno::ENOENT
 		# Check for difference Langs and extensions before 404-ing		
-								path = request.fullFname().remEscapes.split("/")[0...-1].join("/")
-								
-								if request.fullFname().remEscapes[-1] == "/"
-									response.status = RESPONSES[404]
-                response.addHeader("Transfer-Encoding","chunked")
-									response.addHeader("Content-Type", "text/html")
-									response.body = ERROR_PAGE(404)
-									return logAndRespond(logger, ip, request, 404, response.body.length, response)
-								end
-								begin
-									File.new(path, "r").read
-								rescue Errno::EISDIR 
-								rescue Errno::ENOENT
-									response.status = RESPONSES[404]
-                response.addHeader("Transfer-Encoding","chunked")
-									response.body = ERROR_PAGE(404)
-									response.addHeader("Content-Type", "text/html")
-									return logAndRespond(logger, ip, request, 404, response.body.length, response)
-								end
+		path = request.fullFname().remEscapes.split("/")[0...-1].join("/")		
+		if request.fullFname().remEscapes[-1] == "/"
+        		response.status = RESPONSES[404]
+			response.addHeader("Transfer-Encoding","chunked")
+			response.addHeader("Content-Type", "text/html")
+			response.body = ERROR_PAGE(404)
+			return logAndRespond(logger, ip, request, 404, response.body.length, response)
+		end
+		begin
+			File.new(path, "r").read
+		rescue Errno::EISDIR 
+		rescue Errno::ENOENT
+			response.status = RESPONSES[404]
+			response.addHeader("Transfer-Encoding","chunked")
+			response.body = ERROR_PAGE(404)
+			response.addHeader("Content-Type", "text/html")
+	        	return logAndRespond(logger, ip, request, 404, response.body.length, response)
+		end
 
-								begin
+		begin
 			flist = Dir.entries(path)
-								rescue Errno::ENOENT
-									response.status = RESPONSES[404]
-                response.addHeader("Transfer-Encoding","chunked")
-									response.body = ERROR_PAGE(404)
-									response.addHeader("Content-Type", "text/html")
-									return logAndRespond(logger, ip, request, 404, response.body.length, response)
-								end
+	        rescue Errno::ENOENT
+			response.status = RESPONSES[404]
+			response.addHeader("Transfer-Encoding","chunked")
+			response.body = ERROR_PAGE(404)
+			response.addHeader("Content-Type", "text/html")
+			return logAndRespond(logger, ip, request, 404, response.body.length, response)
+		end
 
                 fname = request.fullFname().remEscapes.split("/").last
-		
-								flist.keep_if{|i| i.include?(fname)}
-								
-								json = "{\"$F\" 1 {type $M} {length $L}}"
+		flist.keep_if{|i| i.include?(fname)}
 					
-								alts = flist.map{|i|
-									f = path + "/" + i
-									m = getMIME(i)
-									l = File.new(f, "r").size.to_s
-
-									json.gsub("$F",i).gsub("$M",m).gsub("$L", l)
-								}
+		json = "{\"$F\" 1 {type $M} {length $L}}"
+					
+		alts = flist.map{|i|
+			f = path + "/" + i
+			m = getMIME(i)
+			l = File.new(f, "r").size.to_s
+			json.gsub("$F",i).gsub("$M",m).gsub("$L", l)
+		}
 								
+		if !request.headers.key?("Accept") and !alts.empty?
+			response.status = RESPONSES[300]
+			response.addHeader("Transfer-Encoding","chunked")
+			response.body = ERROR_PAGE(300)
+			response.addHeader("Content-Type", "text/html")
+			response.addHeader("Alternates", alts.join(", "))
+			return logAndRespond(logger, ip, request, 300, response.body.length, response)
+		end
 
 
-								if !request.headers.key?("Accept") and !alts.empty?
-									response.status = RESPONSES[300]
-                response.addHeader("Transfer-Encoding","chunked")
-									response.body = ERROR_PAGE(300)
-									response.addHeader("Content-Type", "text/html")
-									response.addHeader("Alternates", alts.join(", "))
-									return logAndRespond(logger, ip, request, 300, response.body.length, response)
-								end
 
 		# 404 stuff
 		response.status = RESPONSES[404]
-                response.addHeader("Transfer-Encoding","chunked")
+		response.addHeader("Transfer-Encoding","chunked")
 		response.body = ERROR_PAGE(404)
 		response.addHeader("Content-Type", "text/html")
 		return logAndRespond(logger, ip, request, 404, response.body.length, response)
 	end
 
 	response = Response.new
-	response.status = RESPONSES[400]
-                response.addHeader("Transfer-Encoding","chunked")
+        response.status = RESPONSES[400]
+	response.addHeader("Transfer-Encoding","chunked")
 	response.body = ERROR_PAGE(400)
 	return logAndRespond(logger, ip, request, 400, response.body.length, response)
 end
