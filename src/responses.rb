@@ -10,6 +10,7 @@ RESPONSES =
 		400 => "400 Bad Request",
 		403 => "403 Forbidden",
 		404 => "404 Not Found",
+                406 => "406 Not Acceptable",
 		408 => "408 Request Timeout",
 		412 => "412 Precondition Failed",
 		500 => "500 Internal Server Error",

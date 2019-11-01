@@ -360,15 +360,70 @@ def evalReq(request, response, ip, config)
 		flist.keep_if{|i| i.include?(fname)}
 					
 		json = "{\"$F\" 1 {type $M} {length $L}}"
-					
+	        alternates = []				
 		alts = flist.map{|i|
 			f = path + "/" + i
 			m = getMIME(i)
 			l = File.new(f, "r").size.to_s
+                        alternates.append([f, m, l])
 			json.gsub("$F",i).gsub("$M",m).gsub("$L", l)
 		}
-								
-		if !request.headers.key?("Accept") and !alts.empty?
+
+                if(request.headers.key?("Accept-Encoding"))
+                   encs = request.headers["Accept-Encoding"].split(",").map{|i| i.delete(' ').delete("q=").split(";")}
+                  best = [[][-1]]
+                  for i in encs
+                    best = i if best.nil? or i[1].to_f > best[1].to_f
+                  end
+
+                  if best[0].empty?
+                    response.status = RESPONSES[406]
+                        response.body = ERROR_PAGE(406)
+                        response.addHeader("Content-Type","text/html")
+                        response.addHeader("Content-Length", response.body.length)
+                        return logAndRespond(logger,ip,request,406,response.body.length,response)
+                  else
+                    begin
+                      case best[1]
+                        when "chunked"
+                          response.status = RESPONSES[200]
+                          response.addHeader("Content-Type",getMIME(fname))
+                          response.body = File.new(request.fullFname().remEscapes, "r").read
+                          return logAndRespond(logger,ip,request,200,response.body.length,response)
+                        when "deflate"
+                          response.status = RESPONSES[200]
+                          response.addHeader("Content-Type",getMIME(fname))
+                          response.body = File.new(request.fullFname().remEscapes+".zz", "r").read
+                          return logAndRespond(logger,ip,request,200,response.body.length,response)
+                        when "compress"
+                          response.status = RESPONSES[200]
+                          response.addHeader("Content-Type",getMIME(fname))
+                          response.body = File.new(request.fullFname().remEscapes+".Z", "r").read
+                          return logAndRespond(logger,ip,request,200,response.body.length,response)  
+                        when "gzip"
+                          response.status = RESPONSES[200]
+                          response.addHeader("Content-Type",getMIME(fname))
+                          response.body = File.new(request.fullFname().remEscapes+".gz", "r").read
+                          return logAndRespond(logger,ip,request,200,response.body.length,response)
+                        else
+                          response.status = RESPONSES[406]
+                          response.body = ERROR_PAGE(406)
+                          response.addHeader("Content-Type","text/html")
+                          response.addHeader("Content-Length", response.body.length)
+                          response.addHeader("Transfer-Encoding","chunked")
+                          return logAndRespond(logger,ip,request,406,response.body.length,response)
+                      end
+                    rescue
+                        response.status = RESPONSES[406]
+                        response.body = ERROR_PAGE(406)
+                        response.addHeader("Transfer-Encoding","chunked")
+                        response.addHeader("Content-Type","text/html")
+                        response.addHeader("Content-Length", response.body.length)
+                        return logAndRespond(logger,ip,request,406,response.body.length,response)
+                    end
+                  end
+                end
+                if (!request.headers.key?("Accept")) and !alts.empty?
 			response.status = RESPONSES[300]
 			response.addHeader("Transfer-Encoding","chunked")
 			response.body = ERROR_PAGE(300)
@@ -377,7 +432,54 @@ def evalReq(request, response, ip, config)
 			return logAndRespond(logger, ip, request, 300, response.body.length, response)
 		end
 
+                begin
+                  accepts = request.headers["Accept"].split(",").map{|i| i.delete(' ').delete("q=").split(";")}
+                rescue
+                  response.status = RESPONSES[404]
+		  response.addHeader("Transfer-Encoding","chunked")
+		  response.body = ERROR_PAGE(404)
+		  response.addHeader("Content-Type", "text/html")
+		  return logAndRespond(logger, ip, request, 404, response.body.length, response)
+                end
 
+               
+                payload = false
+                best = nil
+
+                for i in accepts
+                  if i[0].include?("*")
+                    for j in alternates
+                      begin
+                        best = j if j[1].include?(i[0].split("/")[0]) and best[1].to_f < i[1].to_f
+                      rescue NoMethodError
+                        best = j if j[1].include?(i[0].split("/")[0])
+                      end
+                    end
+                  else
+                    for j in alternates
+                      
+                      begin
+                        best = j if j[1] == i[0] and best[1].to_f < i[1].to_f
+                      rescue NoMethodError
+                        best = j if j[1] == i[0]
+                      end
+                    end
+                  end
+                end
+              
+                if !best.nil?
+                  response.status = RESPONSES[200]
+                  response.body = best[0]
+                  response.addHeader("Content-Type", best[1])
+                  response.addHeader("Content-Length", best[2])
+                  logAndRespond(logger, ip, request, 200, best[2], response)
+                else
+                  response.status = RESPONSES[406]
+                  response.body = ERROR_PAGE(406)
+                  response.addHeader("Content-Type", "text/html")
+                  response.addHeader("Content-Length", response.body.length)
+                  logAndRespond(logger, ip, request, 406, response.body.length, response)
+                end
 
 		# 404 stuff
 		response.status = RESPONSES[404]
