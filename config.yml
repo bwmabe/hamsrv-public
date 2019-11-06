@@ -7,3 +7,4 @@ web-root: "web-root"
 default-page: "index.html"
 redirect-file: "redirects.conf"
 timeout: 5
+access-file: "WeMustProtectThisHouse!"

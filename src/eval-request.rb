@@ -65,6 +65,8 @@ def evalReq(request, response, ip, config)
 
 	logger = Logger.new(config)
 
+	request.getAuthInfo()
+
 	# Bad Request checks
 	if isBlank?(request.uri)
 		#response = genError(response, 400)
@@ -79,25 +81,58 @@ def evalReq(request, response, ip, config)
 		return logAndRespond(logger,ip,request,400,0,response)
 	end
 
+	if request.raw.scan("Authorization").length > 1
+		response.status = RESPONSES[400]
+		response.addHeader("Transfer-Encoding","chunked")
+		response.body = ERROR_PAGE(400)
+		response.addHeader("Content-Length", response.body.length)
+		response.addHeader("Content-Type", "text/html")
+		return logAndRespond(logger,ip,request,400,response.body.length,response)
+	end
+
 	# Check for auth
 	needAuth = false
 	current_realm = ""
 	authType = ""
+	users = []
+	allow = false
 
 	config["protected"].each{ |i|
 		if request.uri.include?(i["dir"])
 			needAuth = true
 			current_realm = i["realm"]
 			authType = i["authorization-type"]
+			users = i["users"]
 		end
 	}
 
 	if needAuth
-		response.status = RESPONSES[401]
-		response.addHeader("Transfer-Encoding", "chunked")
-		response.addHeader("WWW-Authenticate", authType + " realm=\"" + current_realm + "\"")
-		response.body = ERROR_PAGE(401)
-		return logAndRespond(logger,ip,request,401,response.body.length,response)
+		authInfo = request.getAuthInfo()
+		if !authInfo.nil? && authInfo["type"] == "Basic"
+			users.each{|i|
+				#puts authInfo["user"]
+				if authInfo["user"] == i["name"]
+					allow = true if authInfo["hash"] == i["hash"]
+				end
+			}
+
+			if allow
+				response.addHeader("WWW-Authenticate", "Basic Realm=\"" + current_realm + "\"")
+			else
+				response.status = RESPONSES[401]
+				response.addHeader("Transfer-Encoding", "chunked")
+				response.addHeader("WWW-Authenticate", authType + " realm=\"" + current_realm + "\"")
+				response.body = ERROR_PAGE(401)
+				return logAndRespond(logger,ip,request,401,response.body.length,response)
+			end
+		end
+		if !allow
+			response.status = RESPONSES[401]
+			response.addHeader("Transfer-Encoding", "chunked")
+			response.addHeader("WWW-Authenticate", authType + " realm=\"" + current_realm + "\"")
+			response.body = ERROR_PAGE(401)
+			return logAndRespond(logger,ip,request,401,response.body.length,response)
+		end
 	end
 
 	# Check if method allowed
