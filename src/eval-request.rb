@@ -79,6 +79,27 @@ def evalReq(request, response, ip, config)
 		return logAndRespond(logger,ip,request,400,0,response)
 	end
 
+	# Check for auth
+	needAuth = false
+	current_realm = ""
+	authType = ""
+
+	config["protected"].each{ |i|
+		if request.uri.include?(i["dir"])
+			needAuth = true
+			current_realm = i["realm"]
+			authType = i["authorization-type"]
+		end
+	}
+
+	if needAuth
+		response.status = RESPONSES[401]
+		response.addHeader("Transfer-Encoding", "chunked")
+		response.addHeader("WWW-Authenticate", authType + " realm=\"" + current_realm + "\"")
+		response.body = ERROR_PAGE(401)
+		return logAndRespond(logger,ip,request,401,response.body.length,response)
+	end
+
 	# Check if method allowed
 	if !config["allowed-methods"].include?(request.method)
 		response.status = RESPONSES[501]
@@ -293,10 +314,19 @@ def evalReq(request, response, ip, config)
 						elsif !/^(\d+)-(\d+)/.match(i).nil?
 							# do from x to y
 							for i in (m2[1].to_i)..(m2[2].to_i)
-								buffer.concat(IO.read(fname, 1, i))
+								begin
+									buffer.concat(IO.read(fname, 1, i))
+								rescue
+									response.status = RESPONSES[416]
+									response.body = ERROR_PAGE(416)
+									response.addHeader("Content-Length",response.body.length)
+									response.addHeader("Content-Type","message/http")
+									response.addHeader("Transfer-Encoding","chunked")
+									return logAndRespond(logger,ip,request,416,response.body.length,response)
+								end
 							end
 							#cr	= ", " if !cr.empty?
-							cr.concat(m2[1].to_s + "-" + m2[2].to_s)
+							cr.concat(m2[1].to_s + "-" + m2[2])
 						elsif !/^-(\d+)/.match(i).nil?
 							# do last x bytes
 							x = file.size - m3[1].to_i
