@@ -131,12 +131,20 @@ class Request
 	def getAuthInfo()
 		return nil if @headers["Authorization"].nil?
 		temp = {}
-		a = @headers["Authorization"].split(" ", 2)
+		a = @headers["Authorization"].split(" ", 3)
 		temp["type"] = a[0]
 		if temp["type"] == "Basic"
 			a = Base64.decode64(a[1])
 			temp["user"] = a.split(":")[0]
 			temp["hash"] = Digest::MD5.hexdigest(a.split(":")[1])
+		elsif temp["type"] == "Digest"
+			a[2].split(",").map{|i|
+				i.split("=").map{|j|
+					j.lstrip.rstrp.tr("\"","")
+				}
+			}.each{ |i|
+				temp[i[0]] = i[1]
+			}
 		end
 		return temp
 	end

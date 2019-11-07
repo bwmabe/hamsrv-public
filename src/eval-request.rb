@@ -125,6 +125,8 @@ def evalReq(request, response, ip, config)
 				response.body = ERROR_PAGE(401)
 				return logAndRespond(logger,ip,request,401,response.body.length,response)
 			end
+		elsif !authInfo.nil? && authInfo["type"] == "Digest"
+			puts  authInfo	
 		end
 		if !allow
 			response.status = RESPONSES[401]
