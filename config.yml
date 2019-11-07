@@ -8,3 +8,4 @@ default-page: "index.html"
 redirect-file: "redirects.conf"
 timeout: 5
 access-file: "WeMustProtectThisHouse!"
+nonce-key: "4 //Chosen by dice roll; guaranteed to be random"
