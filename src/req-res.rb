@@ -140,7 +140,7 @@ class Request
 		elsif temp["type"] == "Digest"
 			a[2].split(",").map{|i|
 				i.split("=").map{|j|
-					j.lstrip.rstrp.tr("\"","")
+					j.lstrip.rstrip.tr("\"","")
 				}
 			}.each{ |i|
 				temp[i[0]] = i[1]
