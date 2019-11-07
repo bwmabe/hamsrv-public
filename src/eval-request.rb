@@ -126,7 +126,36 @@ def evalReq(request, response, ip, config)
 				return logAndRespond(logger,ip,request,401,response.body.length,response)
 			end
 		elsif !authInfo.nil? && authInfo["type"] == "Digest"
-			puts  authInfo	
+			# Check if realm correct
+			allow = true
+			if authInfo["realm"] != current_realm
+				allow = false
+			end
+
+			# Check if nc correct
+			if authInfo["nc"] != "00000001"
+				allow = false
+			end
+			# Check if user exists/is correct
+			user = nil
+			users.each{|i|
+				user = i if i["name"] == authInfo["username"]
+			}
+
+			if !user.nil? && allow
+				a1 = user["hash"]
+				a2 = Digest::MD5.hexdigest(request.method + ":" + request.uri)
+				if authInfo["response"] == Digest::MD5.hexdigest(a1 + "::" + authInfo["nc"] + ":" + authInfo["cnonce"] + ":" + authInfo["qop"] + ":" + a2)
+					allow = true
+					rspauth = Digest::MD5.hexdigest(a1 + "::" + authInfo["nc"] + ":" + authInfo["cnonce"] + ":" + authInfo["qop"] + ":" + Digest::MD5.hexdigest(":" + request.uri))
+					response.addHeader("Authentication-Info","rspaut=\"" + rspauth + "\"")
+				else
+					allow = false
+				end
+
+			end
+
+			# either continue or 401
 		end
 		if !allow
 			response.status = RESPONSES[401]
