@@ -87,6 +87,7 @@ if __FILE__ == $0
 	puts cfg["default-page"]
 	puts cfg["timeout"]
 	puts cfg["access-file"]
+	puts cfg["nonce-key"]
 	cfg["protected"].each{|i| puts i}
 
 	cfg2 = load_config("filethatdoesn'texist.filename")

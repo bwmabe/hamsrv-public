@@ -8,6 +8,7 @@ require_relative "time-date"
 require_relative "etag"
 require_relative "dirlist"
 require_relative "redirects"
+require_relative "nonce"
 
 LOCSTR = "\"http://.*\""
 
@@ -54,7 +55,9 @@ def respondWithFile(logger, ip, file, req , res)
 	return res
 end
 
-def evalReq(request, response, ip, config)
+class EvalReq
+	@@nonces = []
+	def self.evalReq(request, response, ip, config)
 	if __FILE__ == $0
 		debug = true
 		#config["allowed-methods"].each { |i| puts i }
@@ -96,6 +99,8 @@ def evalReq(request, response, ip, config)
 	authType = ""
 	users = []
 	allow = false
+	#nonces = []
+	nc = "00000001"
 
 	config["protected"].each{ |i|
 		if request.uri.include?(i["dir"])
@@ -121,7 +126,12 @@ def evalReq(request, response, ip, config)
 			else
 				response.status = RESPONSES[401]
 				response.addHeader("Transfer-Encoding", "chunked")
-				response.addHeader("WWW-Authenticate", authType + " realm=\"" + current_realm + "\"")
+				@@nonces.push( genNonce(config["nonce-key"],request.debugPrint) )
+				if authType == "Basic"
+					response.addHeader("WWW-Authenticate", authType + " realm=\"" + current_realm + "\"")
+				else
+					response.addHeader("WWW-Authenticate", authType + " realm=\""+ current_realm + "\", nonce=\"" + @@nonces.last + "\"")
+				end
 				response.body = ERROR_PAGE(401)
 				return logAndRespond(logger,ip,request,401,response.body.length,response)
 			end
@@ -145,9 +155,10 @@ def evalReq(request, response, ip, config)
 			if !user.nil? && allow
 				a1 = user["hash"]
 				a2 = Digest::MD5.hexdigest(request.method + ":" + request.uri)
-				if authInfo["response"] == Digest::MD5.hexdigest(a1 + "::" + authInfo["nc"] + ":" + authInfo["cnonce"] + ":" + authInfo["qop"] + ":" + a2)
+				nonce = authInfo["nonce"] if @@nonces.include? authInfo["nonce"]
+				if authInfo["response"] == Digest::MD5.hexdigest(a1 + ":" + nonce + ":" + authInfo["nc"] + ":" + authInfo["cnonce"] + ":" + authInfo["qop"] + ":" + a2)
 					allow = true
-					rspauth = Digest::MD5.hexdigest(a1 + "::" + authInfo["nc"] + ":" + authInfo["cnonce"] + ":" + authInfo["qop"] + ":" + Digest::MD5.hexdigest(":" + request.uri))
+					rspauth = Digest::MD5.hexdigest(a1 + ":" + nonce + ":" + authInfo["nc"] + ":" + authInfo["cnonce"] + ":" + authInfo["qop"] + ":" + Digest::MD5.hexdigest(":" + request.uri))
 					response.addHeader("Authentication-Info","rspaut=\"" + rspauth + "\"")
 				else
 					allow = false
@@ -160,7 +171,12 @@ def evalReq(request, response, ip, config)
 		if !allow
 			response.status = RESPONSES[401]
 			response.addHeader("Transfer-Encoding", "chunked")
-			response.addHeader("WWW-Authenticate", authType + " realm=\"" + current_realm + "\"")
+			@@nonces.push(genNonce(config["nonce-key"],request.debugPrint))
+				if authType == "Basic"
+					response.addHeader("WWW-Authenticate", authType + " realm=\"" + current_realm + "\"")
+				else
+					response.addHeader("WWW-Authenticate", authType + " realm=\""+ current_realm + "\", nonce=\"" + @@nonces.last + "\"")
+				end
 			response.body = ERROR_PAGE(401)
 			return logAndRespond(logger,ip,request,401,response.body.length,response)
 		end
@@ -590,6 +606,7 @@ def evalReq(request, response, ip, config)
 	response.addHeader("Transfer-Encoding","chunked")
 	response.body = ERROR_PAGE(400)
 	return logAndRespond(logger, ip, request, 400, response.body.length, response)
+end
 end
 
 if __FILE__ == $0

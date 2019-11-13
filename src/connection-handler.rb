@@ -75,10 +75,10 @@ def connection(client, config)
 				# request, response, client ip, config file
 				unless isBlank?( config["web-root"] )
 					req = Request.new(request, config["web-root"])
-					evalReq(req, response, ip, config)
+					EvalReq::evalReq(req, response, ip, config)
 				else
 					req = Request.new(request)
-					evalReq(req, response, ip, config)
+					EvalReq::evalReq(req, response, ip, config)
 				end
 				
 
