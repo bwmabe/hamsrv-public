@@ -21,10 +21,27 @@ def handleConnection(socket,config)
 end
 
 def chunked?(response)
-  #return false if !response.headers.key?("Transfer-Encoding")
-  #return true  if response.headers["Transfer-Encoding"].include?("hunked")
+  return false if !response.headers.key?("Transfer-Encoding")
+  return true  if response.headers["Transfer-Encoding"].include?("hunked")
   #puts "BROKEN"
   return false
+end
+
+def sendChunked(response, client)
+	sent = false
+	client.write response.statusAndHeaders
+	begin 
+		response.body.each{|i|
+			client.write (i.length.to_s(16) + "\r\n" + i + "\r\n")
+		}
+		sent = true
+	rescue NoMethodError
+		if response.body.length > 0
+			client.write response.body.length.to_s(16) + "\r\n" + response.body + "\r\n"
+			sent = true
+		end
+	end
+	client.write "0\r\n\r\n" if sent
 end
 
 def connection(client, config)
@@ -75,10 +92,10 @@ def connection(client, config)
 				# request, response, client ip, config file
 				unless isBlank?( config["web-root"] )
 					req = Request.new(request, config["web-root"])
-					evalReq(req, response, ip, config)
+					EvalReq::evalReq(req, response, ip, config)
 				else
 					req = Request.new(request)
-					evalReq(req, response, ip, config)
+					EvalReq::evalReq(req, response, ip, config)
 				end
 				
 
@@ -94,10 +111,20 @@ def connection(client, config)
 					else
 						response.addHeader("Connection", "keep-alive")
 					end
-					client.write response.print
+					
+					if chunked?(response)
+						sendChunked(response, client)
+					else
+						client.write response.print
+					end
 					request = ''
 				rescue NoMethodError
-					client.write response.print
+					if chunked?(response)
+						sendChunked(response, client)
+					else
+						client.write response.print
+					end
+					request = ''
 				rescue IOError
 					#puts "Client disconnected before message could be sent"
 					break

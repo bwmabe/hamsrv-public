@@ -1,3 +1,5 @@
+require "base64"
+require "digest"
 require_relative "responses"
 require_relative "time-date"
 
@@ -6,6 +8,7 @@ class Request
 	#  or nothing at all
 	def initialize(req, *webroot)
 		@host = ""
+		@raw = req
 
 		lines = req.sub("\r","").split("\n")
 		unless lines[0].nil?
@@ -79,7 +82,7 @@ class Request
 		end
 	end
 
-	attr_reader :valid, :uri, :headers, :method, :version, :filename, :file_cannonical, :host, :lines, :str, :directive, :root
+	attr_reader :valid, :uri, :headers, :method, :version, :filename, :file_cannonical, :host, :lines, :str, :directive, :root, :raw
 	attr_writer :headers, :host
 
 	def fname
@@ -123,6 +126,28 @@ class Request
 		str += "\n" + headers.to_s
 		str += "\n" + @headers["If-None-Match"][0] if @headers.key?("If-None-Match")
 		return str
+	end
+
+	def getAuthInfo()
+		return nil if @headers["Authorization"].nil?
+		temp = {}
+		#puts @headers["Authorization"]
+		a = @headers["Authorization"].split(" ", 2)
+		temp["type"] = a[0]
+		if temp["type"] == "Basic"
+			a = Base64.decode64(a[1])
+			temp["user"] = a.split(":")[0]
+			temp["hash"] = Digest::MD5.hexdigest(a.split(":")[1])
+		elsif temp["type"] == "Digest"
+			a[1].split(",").map{|i|
+				i.split("=").map{|j|
+					j.lstrip.rstrip.tr("\"","")
+				}
+			}.each{ |i|
+				temp[i[0]] = i[1]
+			}
+		end
+		return temp
 	end
 
 	def v
