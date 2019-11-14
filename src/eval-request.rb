@@ -159,7 +159,7 @@ class EvalReq
 				if authInfo["response"] == Digest::MD5.hexdigest(a1 + ":" + nonce + ":" + authInfo["nc"] + ":" + authInfo["cnonce"] + ":" + authInfo["qop"] + ":" + a2)
 					allow = true
 					rspauth = Digest::MD5.hexdigest(a1 + ":" + nonce + ":" + authInfo["nc"] + ":" + authInfo["cnonce"] + ":" + authInfo["qop"] + ":" + Digest::MD5.hexdigest(":" + request.uri))
-					response.addHeader("Authentication-Info","rspaut=\"" + rspauth + "\"")
+					response.addHeader("Authentication-Info","rspauth=\"" + rspauth + "\"")
 				else
 					allow = false
 				end
