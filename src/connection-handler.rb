@@ -31,10 +31,12 @@ def sendChunked(response, client)
 	sent = false
 	client.write response.statusAndHeaders
 	begin 
-		response.body.each{|i|
-			client.write (i.length.to_s(16) + "\r\n" + i + "\r\n")
+		response.body.split("\n").each{|i|
+			if i.length > 0
+				client.write (i.length.to_s(16) + "\r\n" + i + "\r\n") 
+				sent = true
+			end
 		}
-		sent = true
 	rescue NoMethodError
 		if response.body.length > 0
 			client.write response.body.length.to_s(16) + "\r\n" + response.body + "\r\n"
