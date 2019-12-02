@@ -137,7 +137,7 @@ class Request
 		if temp["type"] == "Basic"
 			a = Base64.decode64(a[1])
 			temp["user"] = a.split(":")[0]
-			temp["hash"] = Digest::MD5.hexdigest(a.split(":")[1])
+			temp["hash"] = Digest::MD5.hexdigest(a.split(":")[1].to_s)
 		elsif temp["type"] == "Digest"
 			a[1].split(",").map{|i|
 				i.split("=").map{|j|
