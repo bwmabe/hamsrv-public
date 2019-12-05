@@ -1,6 +1,6 @@
 host: "0.0.0.0"
 port: 9999
-allowed-methods: ["gET", "HEAD", "Options", "Trace"]
+allowed-methods: ["gET", "HEAD", "Options", "Trace", "post"]
 extant-methods: ["get", "head", "options", "trace", "post", "put", "delete", "connect", "patch"]
 log-file: "access.log"
 web-root: "web-root"

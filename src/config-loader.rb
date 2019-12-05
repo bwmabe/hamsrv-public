@@ -36,10 +36,15 @@ def loadProtected(config)
 			j if j[0] != "#"
 		}.compact
 		temp["users"] = []
+		temp["methods"] = []
 		f.each{|j|
 			if j.include?("=")
 				a = j.split("=",2)
 				temp[a[0]] = a[1].tr("\"","")
+			end
+
+			if j.include?("ALLOW-")
+				temp["methods"].append(j.split("-").last)
 			end
 
 			if j.include?(":")

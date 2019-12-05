@@ -63,6 +63,9 @@ class EvalReq
 		#config["allowed-methods"].each { |i| puts i }
 	end
 
+	#response = Response.new
+	response.body = ''
+
 	# Boolean used to differentiate between HEAD and GET
 	sendBody = true
 
@@ -99,6 +102,7 @@ class EvalReq
 	authType = ""
 	users = []
 	allow = false
+	methods = ""
 	#nonces = []
 	nc = "00000001"
 
@@ -108,6 +112,9 @@ class EvalReq
 			current_realm = i["realm"]
 			authType = i["authorization-type"]
 			users = i["users"]
+			if !i["methods"].empty?
+				methods = ", " + i["methods"].join(", ")
+			end
 		end
 	}
 
@@ -133,6 +140,8 @@ class EvalReq
 					response.addHeader("WWW-Authenticate", authType + " realm=\""+ current_realm + "\", nonce=\"" + @@nonces.last + "\"")
 				end
 				response.body = ERROR_PAGE(401)
+				response.addHeader("Content-Type", "text/html")
+				response.addHeader("Content-Length", response.body.length)
 				return logAndRespond(logger,ip,request,401,response.body.length,response)
 			end
 		elsif !authInfo.nil? && authInfo["type"] == "Digest"
@@ -178,6 +187,8 @@ class EvalReq
 					response.addHeader("WWW-Authenticate", authType + " realm=\""+ current_realm + "\", nonce=\"" + @@nonces.last + "\"")
 				end
 			response.body = ERROR_PAGE(401)
+			response.addHeader("Content-Type", "text/html")
+			response.addHeader("Content-Length", response.body.length)
 			return logAndRespond(logger,ip,request,401,response.body.length,response)
 		end
 	end
@@ -211,7 +222,7 @@ class EvalReq
 			sendBody = false
 		when 'OPTIONS'
 			response.status = RESPONSES[200]
-			response.addHeader("Allow", config["allowed-methods"].join(", ") )
+			response.addHeader("Allow", config["allowed-methods"].join(", ") + methods)
 			return logAndRespond(logger,ip,request,200,0,response)
 		when 'TRACE'
 			response.addHeader("Content-Type","message/http")
@@ -220,7 +231,9 @@ class EvalReq
 			response.addHeader("Content-Length",response.body.length.to_s)
 			return logAndRespond(logger,ip,request,200,response.body.length.to_s,response)
 		else 
-		# Repeat of Method not allowed as a failsafe
+		# Repeat of Method not allowed as a failsafea
+		response.status = RESPONSES[501]
+		response.addHeader("Transfer-Encoding", "chunked")
 		return logAndRespond(logger, ip, request, 501, 0, genError(response, 501))
 	end
 

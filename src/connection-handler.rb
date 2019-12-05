@@ -29,20 +29,31 @@ end
 
 def sendChunked(response, client)
 	sent = false
-	client.write response.statusAndHeaders
+	msg = []
+	#client.write response.statusAndHeaders
+	clen = response.headers["Content-Length"].to_i
 	begin 
 		response.body.split("\n").each{|i|
 			if i.length > 0
-				client.write (i.length.to_s(16) + "\r\n" + i + "\r\n") 
+				msg.append( (i.length.to_s(16) + "\r\n" + i + "\r\n") )
+				clen += i.length.to_s(16).length + 4 if !msg.last.nil?
 				sent = true
 			end
 		}
 	rescue NoMethodError
 		if response.body.length > 0
-			client.write response.body.length.to_s(16) + "\r\n" + response.body + "\r\n"
+			msg.append( response.body.length.to_s(16) + "\r\n" + response.body + "\r\n" )
+			clen += response.body.length.to_s(16).length + 4 if !msg.last.nil?
 			sent = true
 		end
 	end
+	begin
+		response.headers["Content-Length"] = (clen + 5).to_s
+	rescue
+		response.addHeader("Content-Length",5.to_s)
+	end
+	client.write response.statusAndHeaders
+	msg.each{|i| client.write i} if !msg.empty?
 	client.write "0\r\n\r\n" if sent
 end
 
