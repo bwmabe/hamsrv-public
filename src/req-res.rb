@@ -182,6 +182,10 @@ class Response
 		return s
 	end
 
+	def newStatus(stat)
+		@status = stat
+	end
+
 	def addHeader(key, value)
 		@headers[key] = value
 	end

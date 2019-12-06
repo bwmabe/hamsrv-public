@@ -21,15 +21,15 @@ def isBlank?( *x )
 end
 
 def genError( res, err )
-res = Response.new
-	res.status = RESPONSES[err]
+#res = Response.new
+	#res.status = RESPONSES[err]
 	res.body = ERROR_PAGE(err)
 	res.addHeader("Content-Type", "message/http")
 	return res
 end
 
 def logAndRespond(logger, ip, req , err, fsize, res)
-	res.status = RESPONSES[err]
+	#res.status = RESPONSES[err]
 	res.body = "" if req.directive.split[0] == "HEAD"
 				if !req.fname.nil?
 				res.addHeader("Content-Encoding", "gzip") if req.fname[-2..-1] == "gz"
@@ -230,14 +230,17 @@ class EvalReq
 				response.status = RESPONSES[200]
 				sendBody = true
 				cgi_out = IO.popen(['perl', dir]).read
-
+				cgi_payload = "<!DOCTYPE HTML><html><body>"
 				new_status = ""
 				new_headers = []
 				cgi_out.split("\n").each{|i|
+
 					m = /^([A-Z\w\d\-])+:\s[A-Z\w\d\/\:\-\~\.]+$/.match(i);
 					stat = /Status:.*/.match(i);
+					
+					cgi_payload += i
 					if !m.nil?
-						new_headers.append(m[1].split(":",1));
+						new_headers.append m.to_s.split(":",2);
 					end;
 
 					if !stat.nil?
@@ -246,14 +249,30 @@ class EvalReq
 				}
 		
 				if !new_status.empty?
-					response.status = new_status.to_s
-					puts new_status
-					log_stat = new_status.split(" ")[0]
+					response = Response.new
+					response.newStatus(new_status.to_s)
+					response.addHeader("Content-Type", "text/html")
+					response.addHeader("Content-Length", "0")
+					response.addHeader("Transfer-Encoding", "chunked")
+					log_stat = new_status.split(" ")[0].to_i
+					return logAndRespond(logger,ip,request, log_stat, 0, response)
 				end
+
+				redir = false
+
+				response.addHeader("Content-Type","text/html")
+				response.delHeader("Content-type")
+				cgi_payload += "\n</body></html>"
 
 				new_headers.each{|i|
 					response.headers[i[0]] = i[1];
+					redir = true if i[0] == "Location"
 				} if !new_headers.empty?
+				response.body = cgi_payload if !redir;
+				cgi_payload = ""
+				response.status = RESPONSES[302] if redir
+				response.addHeader("Content-Length", response.body.length)
+				response.addHeader("Transfer-Encoding", "chunked")
 				return logAndRespond(logger, ip, request, log_stat, 0, response)
 			end
 			sendBody = true

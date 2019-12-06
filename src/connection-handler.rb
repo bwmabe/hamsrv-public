@@ -155,18 +155,18 @@ def connection(client, config)
 				unless isBlank?( config["web-root"] )
 					req = Request.new(request, config["web-root"])
 					if !payload.empty?
-						EvalReq::evalReq(req, response, ip, config, payload)
+						response = EvalReq::evalReq(req, response, ip, config, payload)
 						payload = []
 					else
-						EvalReq::evalReq(req, response, ip, config)
+						response = EvalReq::evalReq(req, response, ip, config)
 					end
 				else
 					req = Request.new(request)
 					if !payload.empty?
-						EvalReq::evalReq(req, response, ip, config, payload)
+						response = EvalReq::evalReq(req, response, ip, config, payload)
 						payload = []
 					else
-						EvalReq::evalReq(req, response, ip, config)
+						response = EvalReq::evalReq(req, response, ip, config)
 					end
 				end
 				
