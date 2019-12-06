@@ -247,6 +247,8 @@ class EvalReq
 						new_status = stat[0].split(": ")[1]
 					end;
 				}
+
+				response.addHeader("Content-Type","text/html")
 		
 				if !new_status.empty?
 					response = Response.new
@@ -260,16 +262,29 @@ class EvalReq
 
 				redir = false
 
-				response.addHeader("Content-Type","text/html")
-				response.delHeader("Content-type")
+				if new_headers.empty?
+					response.status = RESPONSES[500]
+					response.addHeader("Content-Type","text/html")
+					response.body = ERROR_PAGE(500)
+					response.addHeader("Content-Length", response.body.length)
+					response.addHeader("Transfer-Encoding", "chunked")
+					return logAndRespond(logger,ip,request,500,0,response)
+				end
+
 				cgi_payload += "\n</body></html>"
 
 				new_headers.each{|i|
 					response.headers[i[0]] = i[1];
 					redir = true if i[0] == "Location"
+					response.headers["Content-Type"] = i[1] if i[0] == "Content-type"
+						
 				} if !new_headers.empty?
 				response.body = cgi_payload if !redir;
+
+				response.delHeader("Content-type")
+				
 				cgi_payload = ""
+				
 				response.status = RESPONSES[302] if redir
 				response.addHeader("Content-Length", response.body.length)
 				response.addHeader("Transfer-Encoding", "chunked")
