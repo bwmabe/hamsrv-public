@@ -184,7 +184,7 @@ class EvalReq
 				if authType == "Basic"
 					response.addHeader("WWW-Authenticate", authType + " realm=\"" + current_realm + "\"")
 				else
-					response.addHeader("WWW-Authenticate", authType + " realm=\""+ current_realm + "\", nonce=\"" + @@nonces.last + "\"")
+					response.addHeader("WWW-Authenticate", authType + " realm=\""+ current_realm + "\", nonce=\"" + @@nonces.last + "\"," + "qop=\"auth\", algorithm=MD5, uri=\"" + request.uri + "\"")
 				end
 			response.body = ERROR_PAGE(401)
 			response.addHeader("Content-Type", "text/html")

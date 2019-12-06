@@ -163,7 +163,7 @@ class Response
 		@headers = Hash.new
 		@body = ''
 
-		@headers["Server"] = "hamsrv 0.0.1"
+		@headers["Server"] = "hamsrv 0.0.5"
 		@headers["Date"] = Time.hamNow()
 	end
 
