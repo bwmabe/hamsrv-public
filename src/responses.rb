@@ -2,6 +2,8 @@ RESPONSES =
 	{
 		
 		200 => "200 OK",
+		201 => "201 Created",
+		204 => "204 No Content",
 		206 => "206 Partial Content",
                 300 => "300 Multiple Choices",
 		301 => "301 Moved Permanently",
@@ -11,6 +13,7 @@ RESPONSES =
 		401 => "401 Authorization Required",
 		403 => "403 Forbidden",
 		404 => "404 Not Found",
+		405 => "405 Method Not Allowed",
                 406 => "406 Not Acceptable",
 		408 => "408 Request Timeout",
 		412 => "412 Precondition Failed",

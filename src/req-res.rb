@@ -168,6 +168,7 @@ class Response
 	end
 
 	attr_accessor :status, :body, :headers
+	attr_writer :status
 	attr_reader :version
 
 	def statusline
@@ -193,7 +194,7 @@ class Response
 		@headers["Date"] = Time.hamNow()
 		#@headers["Connection"] = "close"
 
-		return  @version + @status + "\r\n" + self.headerStr + "\r\n"
+		return  @version.to_s + @status.to_s + "\r\n" + self.headerStr.to_s + "\r\n"
 	end
 
 	def print

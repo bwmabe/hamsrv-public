@@ -69,6 +69,12 @@ def connection(client, config)
 	requests = Queue.new
 	msg = []
 	c = nil
+	putpost = false
+	readPayload = false
+	reading = false
+	payload = []
+	clen = 0
+	pllen = 0
 	line = ''
 	response = Response.new
 
@@ -87,12 +93,55 @@ def connection(client, config)
 			c = nil
 		end
 
-		if line[-1] == "\n"
-			msg.append(line)
-			if line == "\r\n" or line == "\n"
-				requests << msg.join
-				msg = []
+		if line[-1] == "\n" 
+			msg.append(line) if !readPayload
+			if (line.split(" ")[0] == "PUT" or line.split(" ")[0] == "POST") and !putpost
+				putpost = true
 			end
+
+			if line.split(":")[0] == "Content-Length"
+				clen = line.split(":")[1].to_i
+			end
+
+
+			if (line == "\r\n" or line == "\n") and reading == false
+				if putpost
+					readPayload = true
+				else
+					requests << msg.join
+					msg = []
+				end
+			end
+
+			if putpost and readPayload
+				if pllen < clen
+					pllen += line.length
+					reading = true
+					payload.append(line)
+					if pllen >= clen
+						reading = false
+						readPayload = false
+						putpost = false
+						pllen = 0
+						clen = 0
+
+						requests << msg.join
+						msg = []
+					end
+				else
+					reading = false
+					readPayload = false
+					putpost = false
+					pllen = 0
+					clen = 0
+
+					requests << msg.join
+					msg = []
+					msg.append(line)
+				end
+			end
+
+		
 			line = ''
 			lastRequest = Time.now
 		end
@@ -105,10 +154,20 @@ def connection(client, config)
 				# request, response, client ip, config file
 				unless isBlank?( config["web-root"] )
 					req = Request.new(request, config["web-root"])
-					EvalReq::evalReq(req, response, ip, config)
+					if !payload.empty?
+						EvalReq::evalReq(req, response, ip, config, payload)
+						payload = []
+					else
+						EvalReq::evalReq(req, response, ip, config)
+					end
 				else
 					req = Request.new(request)
-					EvalReq::evalReq(req, response, ip, config)
+					if !payload.empty?
+						EvalReq::evalReq(req, response, ip, config, payload)
+						payload = []
+					else
+						EvalReq::evalReq(req, response, ip, config)
+					end
 				end
 				
 

@@ -1,5 +1,7 @@
 FROM ruby:alpine
 
+RUN apk update; apk add perl
+
 COPY main.rb /app/
 COPY src/* /app/src/
 COPY config.yml /app/

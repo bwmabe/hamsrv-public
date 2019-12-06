@@ -57,7 +57,7 @@ end
 
 class EvalReq
 	@@nonces = []
-	def self.evalReq(request, response, ip, config)
+	def self.evalReq(request, response, ip, config, *payload)
 	if __FILE__ == $0
 		debug = true
 		#config["allowed-methods"].each { |i| puts i }
@@ -152,9 +152,9 @@ class EvalReq
 			end
 
 			# Check if nc correct
-			if authInfo["nc"] != "00000001"
-				allow = false
-			end
+			#if authInfo["nc"].to_i != "00000001"
+			#	allow = false
+			#end
 			# Check if user exists/is correct
 			user = nil
 			users.each{|i|
@@ -195,10 +195,17 @@ class EvalReq
 
 	# Check if method allowed
 	if !config["allowed-methods"].include?(request.method)
-		response.status = RESPONSES[501]
-		response.addHeader("Transfer-Encoding","chunked")
-		response = genError(response, 501)
-		return logAndRespond(logger,ip,request,501,0,response)
+		if !config["extant-methods"].include?(request.method)	
+			response.status = RESPONSES[501]
+			response.addHeader("Transfer-Encoding","chunked")
+			response = genError(response, 501)
+			return logAndRespond(logger,ip,request,501,0,response)
+		elsif !methods.include?(request.method)
+			response.status = RESPONSES[405]
+			response.addHeader("Content-Type", "message/http")
+			response.addHeader("Allow", config["allowed-methods"].join(", ") + methods)
+			return logAndRespond(logger, ip, request, 405, 0, response)
+		end
 	end
 
 	# Check if client version supported
@@ -215,9 +222,43 @@ class EvalReq
 	# OPTIONS - allowed methods on that file
 	# TRACE	 - do trace things
 
+	dir = config["web-root"] + "/" + request.uri.split(request.host + "/")[-1]
 	case request.method
 		when 'GET'
+			if dir.split(".")[-1] == "cgi"
+				log_stat = 200
+				response.status = RESPONSES[200]
+				sendBody = true
+				cgi_out = IO.popen(['perl', dir]).read
+
+				new_status = ""
+				new_headers = []
+				cgi_out.split("\n").each{|i|
+					m = /^([A-Z\w\d\-])+:\s[A-Z\w\d\/\:\-\~\.]+$/.match(i);
+					stat = /Status:.*/.match(i);
+					if !m.nil?
+						new_headers.append(m[1].split(":",1));
+					end;
+
+					if !stat.nil?
+						new_status = stat[0].split(": ")[1]
+					end;
+				}
+		
+				if !new_status.empty?
+					response.status = new_status.to_s
+					puts new_status
+					log_stat = new_status.split(" ")[0]
+				end
+
+				new_headers.each{|i|
+					response.headers[i[0]] = i[1];
+				} if !new_headers.empty?
+				return logAndRespond(logger, ip, request, log_stat, 0, response)
+			end
 			sendBody = true
+
+
 		when 'HEAD'
 			sendBody = false
 		when 'OPTIONS'
@@ -230,6 +271,36 @@ class EvalReq
 			response.body = request.str
 			response.addHeader("Content-Length",response.body.length.to_s)
 			return logAndRespond(logger,ip,request,200,response.body.length.to_s,response)
+		when 'DELETE'
+			File.delete(dir) if File.exists?(dir)
+			response.addHeader("Content-Type", "message/http")
+			response.status = RESPONSES[200]
+			response.body = "<!DOCTYPE html>\n<html><title>Resource Deleted</title>\n<body>\n<h1>Resource $RSC Deleted</h1>\n</body>\n</html>"
+			response.body.gsub!("$RSC", request.uri)
+			response.addHeader("Content-Length",response.body.length)
+			response.addHeader("Transfer-Encoding", "chunked")
+			return logAndRespond(logger,ip,request,200,0, response)
+		when 'PUT'
+			begin File.open(dir, "r")
+				pFile = File.new(dir, "w")
+				pFile.write payload.join[2..9999]
+				response.status = RESPONSES[201]
+				response.addHeader("Content-Location",request.uri.split(request.host + "/")[-1])
+				response.addHeader("Content-Type", "message/http")
+				return logAndRespond(logger, ip, request, 201, 0, response)
+			rescue
+				(request.uri.split(request.host + "/")[-1])
+				pFile = File.new(dir, "w")
+				pFile.write payload.join[2..9999]
+
+				response.status = RESPONSES[201]
+				response.addHeader("Content-Type", "message/http")
+				response.addHeader("Content-Location", dir.split("/").join[1..9999])
+				return logAndRespond(logger, ip, request, 201, 0, response)
+							
+			end
+
+
 		else 
 		# Repeat of Method not allowed as a failsafea
 		response.status = RESPONSES[501]
@@ -458,6 +529,7 @@ class EvalReq
 			response.addHeader("Transfer-Encoding","chunked")
 			response.addHeader("Content-Type", "text/html")
 			response.body = ERROR_PAGE(404)
+			response.addHeader("Content-Length", response.body.length.to_s)
 			return logAndRespond(logger, ip, request, 404, response.body.length, response)
 		end
 		begin
@@ -467,6 +539,7 @@ class EvalReq
 			response.status = RESPONSES[404]
 			response.addHeader("Transfer-Encoding","chunked")
 			response.body = ERROR_PAGE(404)
+			response.addHeader("Content-Length", response.body.length.to_s)
 			response.addHeader("Content-Type", "text/html")
 	        	return logAndRespond(logger, ip, request, 404, response.body.length, response)
 		end
@@ -478,6 +551,7 @@ class EvalReq
 			response.addHeader("Transfer-Encoding","chunked")
 			response.body = ERROR_PAGE(404)
 			response.addHeader("Content-Type", "text/html")
+			response.addHeader("Content-Length", response.body.length.to_s)
 			return logAndRespond(logger, ip, request, 404, response.body.length, response)
 		end
 
@@ -564,6 +638,7 @@ class EvalReq
 		  response.addHeader("Transfer-Encoding","chunked")
 		  response.body = ERROR_PAGE(404)
 		  response.addHeader("Content-Type", "text/html")
+		response.addHeader("Content-Length", response.body.length.to_s)
 		  return logAndRespond(logger, ip, request, 404, response.body.length, response)
                 end
 
