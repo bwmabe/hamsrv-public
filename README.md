@@ -3,7 +3,9 @@ A mostly RFC compliant webserver written in Ruby.
 
 Was created in Fall 2019 as a semester-long class project.
 
-TODO:
+**Using this code for any classroom assignments without the express permission of the course instructor is forbidden.**
+
+### TODO:
  * **REDIRECTS, 301, 302**
  * ~~Implement reading of request headers~~
    * ~~They can be read, nothing reads them yet~~
