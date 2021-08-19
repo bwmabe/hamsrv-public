@@ -1,5 +1,7 @@
 # hamsrv
-Repository for CS431
+A mostly RFC compliant webserver written in Ruby.
+
+Was created in Fall 2019 as a semester-long class project.
 
 TODO:
  * **REDIRECTS, 301, 302**
